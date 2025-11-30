@@ -1,27 +1,145 @@
 ---
 import { getCollection } from 'astro:content';
-const spots = await getCollection('spots');
+
+// 1. 모든 관광지 데이터 가져오기
+const allSpots = await getCollection('spots');
+
+// 2. 정렬 로직 (거리순 정렬을 기본으로 설정하고 싶으면 여기서 sort)
+// 일단은 기본 순서대로 가져오고, 화면에서 자바스크립트로 정렬할 겁니다.
 ---
 
 <html lang="ko">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
-		<title>지리산 관광지 안내</title>
+		<title>지리산 생태탐방원 인근 관광지</title>
+        <!-- Tailwind CSS는 이미 설치되어 있으므로 바로 사용 가능 -->
 	</head>
-	<body class="p-5">
-		<h1 class="text-3xl font-bold mb-5">⛰️ 지리산 탐방원 인근 관광지</h1>
+	<body class="bg-gray-50 text-gray-800">
+        
+        <!-- 상단 헤더 -->
+		<header class="bg-green-700 text-white p-5 shadow-md sticky top-0 z-50">
+            <div class="max-w-xl mx-auto">
+			    <h1 class="text-xl font-bold flex items-center gap-2">
+                    🏔️ 지리산 탐방원 인근 관광지
+                </h1>
+                <p class="text-xs text-green-100 mt-1">전남 구례군 마산면 화엄사로 402-25 기준</p>
+            </div>
+		</header>
 
-		<ul class="space-y-4">
-			{spots.map((spot) => (
-				<li class="border p-4 rounded shadow-sm bg-white">
-                    <h2 class="text-xl font-bold text-green-700">{spot.data.title}</h2>
-                    <p class="text-gray-600">
-                        📍 {spot.data.region} | 🚗 {spot.data.distance}km ({spot.data.time})
-                    </p>
-                    <p class="mt-2 text-sm text-gray-500">{spot.data.address}</p>
-				</li>
-			))}
-		</ul>
+        <main class="max-w-xl mx-auto p-4">
+            
+            <!-- 통합 검색창 -->
+            <div class="relative mb-6">
+                <input type="text" id="searchInput" placeholder="관광지 이름 검색..." 
+                    class="w-full p-3 pl-10 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                <span class="absolute left-3 top-3.5 text-gray-400">🔍</span>
+            </div>
+
+            <!-- 탭 메뉴 (필터/정렬) -->
+            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
+                <button class="filter-btn active" data-filter="all">전체</button>
+                <button class="filter-btn" data-sort="distance">📏 거리순</button>
+                <button class="filter-btn" data-group="category">🏷️ 종류별</button>
+                <button class="filter-btn" data-group="region">📍 지자체별</button>
+            </div>
+
+            <!-- 관광지 리스트 -->
+            <div id="spot-list" class="grid gap-4">
+                {allSpots.map((spot) => (
+                    <article class="spot-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                        data-title={spot.data.title}
+                        data-category={spot.data.category}
+                        data-region={spot.data.region}
+                        data-distance={spot.data.distance}
+                    >
+                        <div class="flex h-32">
+                            <!-- 이미지 (없으면 회색 박스) -->
+                            <div class="w-1/3 bg-gray-200 flex-shrink-0 relative">
+                                {spot.data.image ? (
+                                    <img src={spot.data.image} alt={spot.data.title} class="w-full h-full object-cover" />
+                                ) : (
+                                    <span class="absolute inset-0 flex items-center justify-center text-2xl">🏞️</span>
+                                )}
+                            </div>
+                            
+                            <!-- 정보 -->
+                            <div class="w-2/3 p-4 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex gap-1 mb-1">
+                                        <span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">{spot.data.region}</span>
+                                        <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{spot.data.category}</span>
+                                    </div>
+                                    <h2 class="text-lg font-bold leading-tight mb-1">{spot.data.title}</h2>
+                                    <p class="text-xs text-gray-500 truncate">{spot.data.address}</p>
+                                </div>
+                                <div class="flex items-center text-sm font-medium text-orange-600">
+                                    🚗 {spot.data.distance}km <span class="text-gray-400 text-xs ml-1">({spot.data.time})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                ))}
+            </div>
+
+        </main>
+
+        <!-- 스타일 (Tailwind 외 커스텀) -->
+        <style>
+            .filter-btn {
+                @apply px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 whitespace-nowrap transition-colors;
+            }
+            .filter-btn.active {
+                @apply bg-green-600 text-white border-green-600;
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
+
+        <!-- 스크립트 (검색 및 필터 기능) -->
+        <script>
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+            const spotCards = document.querySelectorAll('.spot-card');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            // 1. 검색 기능
+            searchInput.addEventListener('input', (e) => {
+                const keyword = (e.target as HTMLInputElement).value.toLowerCase();
+                spotCards.forEach(card => {
+                    const title = card.getAttribute('data-title')?.toLowerCase() || '';
+                    if (title.includes(keyword)) {
+                        (card as HTMLElement).style.display = 'block';
+                    } else {
+                        (card as HTMLElement).style.display = 'none';
+                    }
+                });
+            });
+
+            // 2. 탭 버튼 클릭 (단순 UI 전환용, 실제 정렬 로직은 다음 단계에서 상세 구현)
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 거리순 정렬 예시
+                    if (btn.getAttribute('data-sort') === 'distance') {
+                        const container = document.getElementById('spot-list');
+                        const cards = Array.from(container!.children);
+                        cards.sort((a, b) => {
+                            const distA = parseFloat(a.getAttribute('data-distance') || '0');
+                            const distB = parseFloat(b.getAttribute('data-distance') || '0');
+                            return distA - distB;
+                        });
+                        container!.innerHTML = '';
+                        cards.forEach(card => container!.appendChild(card));
+                    }
+                });
+            });
+        </script>
 	</body>
 </html>
