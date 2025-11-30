@@ -84,7 +84,7 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             const noResult = document.getElementById('no-result');
             
             let allCards = Array.from(document.querySelectorAll('.spot-card')).map(card => card.closest('a'));
-            const categories = ["자연", "문화유산", "국립공원시설", "기타"]; 
+            const categories = ["자연", "문화유산", "국립공원시설", "정원", "기타"]; 
             const regions = ["구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
 
             mainTabs.forEach(tab => {
