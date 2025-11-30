@@ -3,8 +3,6 @@ import { getCollection } from 'astro:content';
 import '../styles/global.css'; 
 
 const allSpots = await getCollection('spots');
-
-// 기본 정렬: 거리순
 allSpots.sort((a, b) => a.data.distance - b.data.distance);
 ---
 
@@ -27,99 +25,53 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
 
         <main class="max-w-md mx-auto p-4 pb-20">
             
-            <!-- 통합 검색창 -->
             <div class="relative mb-6">
                 <input type="text" id="searchInput" placeholder="관광지 이름 검색" 
                     class="w-full p-3 pl-10 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500 transition-colors">
                 <span class="absolute left-3 top-3.5 text-slate-400">🔍</span>
             </div>
 
-            <!-- 1차 탭 (메인 필터) -->
             <div class="flex border-b border-slate-200 mb-4">
-                <button class="main-tab active flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="distance">
-                    📏 거리순
-                </button>
-                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="category">
-                    🏷️ 종류별
-                </button>
-                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="region">
-                    📍 지자체별
-                </button>
+                <button class="main-tab active flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="distance">📏 거리순</button>
+                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="category">🏷️ 종류별</button>
+                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="region">📍 지자체별</button>
             </div>
 
-            <!-- 2차 탭 (하위 필터 - 초기에는 숨김) -->
-            <div id="sub-filter-container" class="mb-6 hidden overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
-                <!-- 자바스크립트로 버튼이 들어갈 자리 -->
-            </div>
+            <div id="sub-filter-container" class="mb-6 hidden overflow-x-auto whitespace-nowrap pb-2 no-scrollbar"></div>
 
-            <!-- 리스트 영역 -->
+            <!-- 이미지 제거된 리스트 -->
             <div id="spot-list" class="space-y-3">
                 {allSpots.map((spot) => (
                     <a href={`/spots/${spot.slug}`} class="block">
-                        <article class="spot-card bg-white rounded-lg border border-slate-200 overflow-hidden flex h-28 transition-transform active:scale-95"
+                        <article class="spot-card bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow"
                             data-title={spot.data.title}
                             data-category={spot.data.category}
                             data-region={spot.data.region}
                             data-distance={spot.data.distance}
                         >
-                            <!-- 이미지 -->
-                            <div class="w-28 bg-slate-200 flex-shrink-0 relative">
-                                {spot.data.image ? (
-                                    <img src={spot.data.image} alt={spot.data.title} class="w-full h-full object-cover" />
-                                ) : (
-                                    <div class="w-full h-full flex items-center justify-center text-slate-400 text-2xl">⛰️</div>
-                                )}
+                            <div class="flex justify-between items-start mb-2">
+                                <h2 class="text-lg font-bold text-slate-800">{spot.data.title}</h2>
+                                <div class="flex gap-1">
+                                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{spot.data.region}</span>
+                                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{spot.data.category}</span>
+                                </div>
                             </div>
-                            
-                            <!-- 정보 -->
-                            <div class="flex-1 p-3 flex flex-col justify-between">
-                                <div>
-                                    <div class="flex gap-1 mb-1">
-                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{spot.data.region}</span>
-                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{spot.data.category}</span>
-                                    </div>
-                                    <h2 class="text-base font-bold text-slate-800 leading-tight">{spot.data.title}</h2>
-                                </div>
-                                <div class="text-sm font-bold text-green-700 flex items-center gap-1">
-                                    <span>📍 {spot.data.distance}km</span>
-                                    <span class="text-xs text-slate-400 font-normal">({spot.data.time})</span>
-                                </div>
+                            <div class="text-sm font-bold text-green-700 flex items-center gap-1">
+                                <span>📍 {spot.data.distance}km</span>
+                                <span class="text-xs text-slate-400 font-normal">({spot.data.time})</span>
                             </div>
                         </article>
                     </a>
                 ))}
             </div>
 
-            <div id="no-result" class="hidden text-center py-10 text-slate-400">
-                검색 결과가 없습니다.
-            </div>
-
+            <div id="no-result" class="hidden text-center py-10 text-slate-400">검색 결과가 없습니다.</div>
         </main>
 
-        <!-- ✨ [수정됨] @apply 제거하고 표준 CSS로 변경 (에러 원천 차단) -->
         <style>
-            .main-tab.active {
-                color: #1e293b; /* slate-800 */
-                border-color: #1e293b;
-            }
-            .sub-chip {
-                display: inline-block;
-                padding: 6px 12px;
-                margin-right: 8px;
-                font-size: 0.75rem; /* xs */
-                font-weight: 500;
-                color: #475569; /* slate-600 */
-                background-color: white;
-                border: 1px solid #cbd5e1; /* slate-300 */
-                border-radius: 9999px; /* full */
-                transition: background-color 0.2s, color 0.2s;
-                cursor: pointer;
-            }
-            .sub-chip.active {
-                background-color: #1e293b; /* slate-800 */
-                color: white;
-                border-color: #1e293b;
-            }
+            .main-tab.active { color: #1e293b; border-color: #1e293b; }
+            .sub-chip { display: inline-block; padding: 6px 12px; margin-right: 8px; font-size: 0.75rem; font-weight: 500; color: #475569; background-color: white; border: 1px solid #cbd5e1; border-radius: 9999px; transition: background-color 0.2s, color 0.2s; cursor: pointer; }
+            .sub-chip.active { background-color: #1e293b; color: white; border-color: #1e293b; }
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         </style>
@@ -131,19 +83,14 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             const subFilterContainer = document.getElementById('sub-filter-container');
             const noResult = document.getElementById('no-result');
             
-            // ✨ [중요] 초기 로딩 시 a 태그(링크)를 포함한 카드 전체를 가져옵니다.
-            // 이렇게 해야 정렬할 때 링크가 깨지지 않고 통째로 이동합니다.
             let allCards = Array.from(document.querySelectorAll('.spot-card')).map(card => card.closest('a'));
-
             const categories = ["자연", "문화유산", "국립공원시설", "기타"]; 
             const regions = ["구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
 
-            // 1. 메인 탭 클릭
             mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     mainTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-
                     const mode = tab.getAttribute('data-mode');
                     
                     if (mode === 'distance') {
@@ -158,11 +105,9 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 });
             });
 
-            // 2. 하위 칩 생성 함수
             function renderSubChips(items, type) {
                 subFilterContainer.classList.remove('hidden');
                 subFilterContainer.innerHTML = '';
-                
                 const allBtn = document.createElement('button');
                 allBtn.className = 'sub-chip active';
                 allBtn.innerText = '전체';
@@ -186,30 +131,22 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 });
             }
 
-            // 3. 필터링 로직
             function filterList(type, value) {
                 let visibleCount = 0;
                 allCards.forEach(cardLink => {
                     const card = cardLink.querySelector('.spot-card');
                     const cardValue = card.getAttribute(`data-${type}`);
-                    
-                    if (cardValue === value) {
-                        cardLink.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        cardLink.style.display = 'none';
-                    }
+                    if (cardValue === value) { cardLink.style.display = 'block'; visibleCount++; } 
+                    else { cardLink.style.display = 'none'; }
                 });
                 checkEmpty(visibleCount);
             }
 
-            // 4. 필터 초기화 (전체 보이기)
             function resetFilter() {
                 allCards.forEach(cardLink => cardLink.style.display = 'block');
                 checkEmpty(allCards.length);
             }
 
-            // 5. 거리순 정렬
             function sortByDistance() {
                 const sorted = [...allCards].sort((a, b) => {
                     const distA = parseFloat(a.querySelector('.spot-card').getAttribute('data-distance'));
@@ -220,19 +157,14 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 sorted.forEach(card => container.appendChild(card));
             }
 
-            // 6. 검색 기능
             searchInput.addEventListener('input', (e) => {
                 const keyword = e.target.value.toLowerCase();
                 let visibleCount = 0;
                 allCards.forEach(cardLink => {
                     const card = cardLink.querySelector('.spot-card');
                     const title = card.getAttribute('data-title').toLowerCase();
-                    if (title.includes(keyword)) {
-                        cardLink.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        cardLink.style.display = 'none';
-                    }
+                    if (title.includes(keyword)) { cardLink.style.display = 'block'; visibleCount++; } 
+                    else { cardLink.style.display = 'none'; }
                 });
                 checkEmpty(visibleCount);
             });
