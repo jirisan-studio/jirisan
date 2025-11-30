@@ -33,7 +33,7 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 <span class="absolute left-3 top-3.5 text-slate-400">🔍</span>
             </div>
 
-            <!-- 메인 탭 (심플하게 변경) -->
+            <!-- 메인 탭 -->
             <div class="flex border-b border-slate-200 mb-4">
                 <button class="main-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600" data-mode="category">
                     📂 종류별 보기
@@ -43,7 +43,8 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 </button>
             </div>
 
-            <!-- 필터 버튼 영역 (기본적으로 종류별 버튼들이 보임) -->
+            <!-- 필터 버튼 영역 -->
+            <!-- flex-wrap과 gap을 주어 버튼들이 예쁘게 줄바꿈되도록 설정 -->
             <div id="filter-container" class="flex flex-wrap gap-2 mb-6">
                 <!-- 자바스크립트로 버튼이 들어갈 자리 -->
             </div>
@@ -58,7 +59,7 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                             data-region={spot.data.region}
                             data-distance={spot.data.distance}
                         >
-                            <!-- 1. 뱃지 (색상 구분 적용) -->
+                            <!-- 1. 뱃지 -->
                             <div class="flex gap-1.5 mb-2">
                                 <span class="text-[11px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold border border-blue-100">{spot.data.region}</span>
                                 <span class={`text-[11px] px-2 py-0.5 rounded-md font-medium border ${
@@ -89,26 +90,29 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
 
         </main>
 
-        <style>
+        <!-- ✨ [핵심 수정] is:global을 추가하여 자바스크립트로 만든 버튼에도 스타일 강제 적용 -->
+        <style is:global>
             .main-tab.active {
                 color: #1e293b; /* slate-800 */
                 border-color: #1e293b;
             }
             
-            /* ✨ 필터 칩(버튼) 디자인 */
+            /* 알약 버튼 스타일 */
             .filter-chip {
                 display: inline-flex;
                 align-items: center;
-                padding: 8px 14px;
-                font-size: 0.85rem;
-                font-weight: 600;
+                justify-content: center;
+                padding: 8px 16px;
+                font-size: 0.9rem;
+                font-weight: 500;
                 color: #64748b; /* slate-500 */
                 background-color: white;
                 border: 1px solid #e2e8f0; /* slate-200 */
-                border-radius: 9999px; /* 둥글게 */
+                border-radius: 9999px; /* 완전 둥근 모양 */
                 cursor: pointer;
                 transition: all 0.2s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                user-select: none;
             }
             
             .filter-chip:hover {
@@ -121,7 +125,8 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 background-color: #1e293b; /* slate-800 */
                 color: white;
                 border-color: #1e293b;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                font-weight: 700;
             }
         </style>
 
@@ -134,14 +139,12 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             
             let allCards = Array.from(document.querySelectorAll('.spot-card')).map(card => card.closest('a'));
             
-            // 데이터 정의
             const categories = ["전체", "자연", "문화유산", "국립공원시설", "정원", "기타"]; 
             const regions = ["전체", "구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
 
-            // 초기 로딩: 종류별 버튼 보여주기
+            // 초기 로딩
             renderChips(categories, 'category');
 
-            // 1. 메인 탭 클릭 (종류별 <-> 지자체별 전환)
             mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     mainTabs.forEach(t => t.classList.remove('active'));
@@ -154,21 +157,18 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                     } else if (mode === 'region') {
                         renderChips(regions, 'region');
                     }
-                    // 탭 바뀔 때 필터 초기화
                     filterList('all', '전체'); 
                 });
             });
 
-            // 2. 칩(버튼) 생성 함수
             function renderChips(items, type) {
                 filterContainer.innerHTML = '';
                 
                 items.forEach(item => {
                     const btn = document.createElement('button');
-                    btn.className = 'filter-chip';
+                    btn.className = 'filter-chip'; // 위에 is:global로 정의한 클래스 사용
                     btn.innerText = item;
                     
-                    // '전체' 버튼은 처음에 활성화
                     if(item === '전체') btn.classList.add('active');
 
                     btn.onclick = () => {
@@ -185,7 +185,6 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 });
             }
 
-            // 3. 필터링 로직
             function filterList(type, value) {
                 let visibleCount = 0;
                 allCards.forEach(cardLink => {
@@ -202,13 +201,11 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 checkEmpty(visibleCount);
             }
 
-            // 4. 필터 초기화 (전체 보이기)
             function resetFilter() {
                 allCards.forEach(cardLink => cardLink.style.display = 'block');
                 checkEmpty(allCards.length);
             }
 
-            // 5. 검색 기능
             searchInput.addEventListener('input', (e) => {
                 const keyword = e.target.value.toLowerCase();
                 let visibleCount = 0;
@@ -216,7 +213,6 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                     const card = cardLink.querySelector('.spot-card');
                     const title = card.getAttribute('data-title').toLowerCase();
                     
-                    // 검색어가 있으면 필터 무시하고 검색어로만 찾음
                     if (title.includes(keyword)) {
                         cardLink.style.display = 'block';
                         visibleCount++;
@@ -225,14 +221,10 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                     }
                 });
                 
-                // 검색어가 비면 다시 현재 필터 적용 (구현 복잡도상 전체보기로 리셋)
                 if (keyword === '') {
-                    // 현재 활성화된 탭 찾아서 리셋
                     const activeChip = document.querySelector('.filter-chip.active');
                     if(activeChip && activeChip.innerText !== '전체') {
-                        // 필터 유지 로직은 복잡해지므로 일단 검색 후엔 전체가 보이게 처리
                         resetFilter();
-                        // 칩 스타일도 전체로 돌림
                         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
                         filterContainer.firstChild.classList.add('active');
                     }
