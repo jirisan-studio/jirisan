@@ -2,7 +2,7 @@
 // 1. 필요한 기능 가져오기
 import { getCollection } from 'astro:content';
 
-// ✨ 2. 스타일 파일 연결 (이게 꼭 있어야 디자인이 나옵니다!)
+// 2. 스타일 파일 연결
 import '../styles/global.css'; 
 
 // 3. 모든 관광지 데이터 가져오기
@@ -40,7 +40,6 @@ const allSpots = await getCollection('spots');
             <div class="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
                 <button class="filter-btn active" data-type="all">전체</button>
                 <button class="filter-btn" data-type="sort-distance">📏 거리순</button>
-                <!-- 예시: 실제 데이터에 있는 카테고리로 필터링 -->
                 <button class="filter-btn" data-type="category" data-value="문화유산">🏯 문화유산</button>
                 <button class="filter-btn" data-type="category" data-value="자연">🌲 자연</button>
                 <button class="filter-btn" data-type="region" data-value="구례">📍 구례</button>
@@ -86,13 +85,24 @@ const allSpots = await getCollection('spots');
 
         </main>
 
-        <!-- 스타일 (Tailwind 외 커스텀) -->
+        <!-- ✨ [수정됨] @apply 대신 표준 CSS를 사용하여 에러 원천 차단 -->
         <style>
             .filter-btn {
-                @apply px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 whitespace-nowrap transition-colors cursor-pointer;
+                padding: 8px 16px;
+                background-color: white;
+                border: 1px solid #e5e7eb; /* gray-200 */
+                border-radius: 9999px; /* full */
+                font-size: 0.875rem; /* sm */
+                font-weight: 500;
+                color: #4b5563; /* gray-600 */
+                white-space: nowrap;
+                transition: background-color 0.2s, color 0.2s;
+                cursor: pointer;
             }
             .filter-btn.active {
-                @apply bg-green-600 text-white border-green-600;
+                background-color: #16a34a; /* green-600 */
+                color: white;
+                border-color: #16a34a;
             }
             .no-scrollbar::-webkit-scrollbar {
                 display: none;
@@ -105,10 +115,10 @@ const allSpots = await getCollection('spots');
 
         <!-- 스크립트 (검색 및 필터 기능) -->
         <script>
-            // 타입스크립트 에러 방지를 위해 타입을 'any'나 HTMLElement로 단언합니다.
             const searchInput = document.getElementById('searchInput');
             const container = document.getElementById('spot-list');
             const filterBtns = document.querySelectorAll('.filter-btn');
+            // 초기 로딩 시 모든 카드 요소를 배열로 저장해둡니다.
             let allCards = Array.from(document.querySelectorAll('.spot-card'));
 
             // 1. 검색 기능
@@ -117,9 +127,9 @@ const allSpots = await getCollection('spots');
                 allCards.forEach(card => {
                     const title = card.getAttribute('data-title')?.toLowerCase() || '';
                     if (title.includes(keyword)) {
-                        card.style.display = 'block'; // 보이기
+                        card.style.display = 'block'; 
                     } else {
-                        card.style.display = 'none';  // 숨기기
+                        card.style.display = 'none';
                     }
                 });
             });
@@ -127,19 +137,17 @@ const allSpots = await getCollection('spots');
             // 2. 탭 버튼 클릭 (필터링 및 정렬)
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // 버튼 스타일 초기화
                     filterBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
                     const type = btn.getAttribute('data-type');
                     const value = btn.getAttribute('data-value');
 
-                    // 초기화: 모든 카드 보이기
+                    // 일단 모두 보이게 초기화
                     allCards.forEach(card => card.style.display = 'block');
 
                     if (type === 'all') {
-                        // 전체보기: 원래 순서대로 (DOM 재정렬이 필요하다면 추가 로직 필요)
-                        // 여기서는 단순히 숨김 해제만 합니다.
+                        // 전체보기 (초기화 상태 유지)
                     } 
                     else if (type === 'sort-distance') {
                         // 거리순 정렬
@@ -148,8 +156,8 @@ const allSpots = await getCollection('spots');
                             const distB = parseFloat(b.getAttribute('data-distance') || '0');
                             return distA - distB;
                         });
-                        container.innerHTML = ''; // 비우고
-                        sorted.forEach(card => container.appendChild(card)); // 다시 채우기
+                        container.innerHTML = ''; 
+                        sorted.forEach(card => container.appendChild(card)); 
                     } 
                     else if (type === 'category' || type === 'region') {
                         // 종류별 / 지역별 필터링
