@@ -273,4 +273,4 @@ spots.forEach(spot => {
     const filePath = path.join(targetDir, spot.filename);
     fs.writeFileSync(filePath, spot.content);
     console.log(`✅ 생성 완료: ${spot.filename}`);
-});
+}); 
