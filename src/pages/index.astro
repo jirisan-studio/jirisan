@@ -1,11 +1,12 @@
 ---
+// 1. 필요한 기능 가져오기
 import { getCollection } from 'astro:content';
 
-// 1. 모든 관광지 데이터 가져오기
-const allSpots = await getCollection('spots');
+// ✨ 2. 스타일 파일 연결 (이게 꼭 있어야 디자인이 나옵니다!)
+import '../styles/global.css'; 
 
-// 2. 정렬 로직 (거리순 정렬을 기본으로 설정하고 싶으면 여기서 sort)
-// 일단은 기본 순서대로 가져오고, 화면에서 자바스크립트로 정렬할 겁니다.
+// 3. 모든 관광지 데이터 가져오기
+const allSpots = await getCollection('spots');
 ---
 
 <html lang="ko">
@@ -13,7 +14,6 @@ const allSpots = await getCollection('spots');
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<title>지리산 생태탐방원 인근 관광지</title>
-        <!-- Tailwind CSS는 이미 설치되어 있으므로 바로 사용 가능 -->
 	</head>
 	<body class="bg-gray-50 text-gray-800">
         
@@ -27,7 +27,7 @@ const allSpots = await getCollection('spots');
             </div>
 		</header>
 
-        <main class="max-w-xl mx-auto p-4">
+        <main class="max-w-xl mx-auto p-4 pb-20">
             
             <!-- 통합 검색창 -->
             <div class="relative mb-6">
@@ -38,10 +38,12 @@ const allSpots = await getCollection('spots');
 
             <!-- 탭 메뉴 (필터/정렬) -->
             <div class="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
-                <button class="filter-btn active" data-filter="all">전체</button>
-                <button class="filter-btn" data-sort="distance">📏 거리순</button>
-                <button class="filter-btn" data-group="category">🏷️ 종류별</button>
-                <button class="filter-btn" data-group="region">📍 지자체별</button>
+                <button class="filter-btn active" data-type="all">전체</button>
+                <button class="filter-btn" data-type="sort-distance">📏 거리순</button>
+                <!-- 예시: 실제 데이터에 있는 카테고리로 필터링 -->
+                <button class="filter-btn" data-type="category" data-value="문화유산">🏯 문화유산</button>
+                <button class="filter-btn" data-type="category" data-value="자연">🌲 자연</button>
+                <button class="filter-btn" data-type="region" data-value="구례">📍 구례</button>
             </div>
 
             <!-- 관광지 리스트 -->
@@ -87,7 +89,7 @@ const allSpots = await getCollection('spots');
         <!-- 스타일 (Tailwind 외 커스텀) -->
         <style>
             .filter-btn {
-                @apply px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 whitespace-nowrap transition-colors;
+                @apply px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600 whitespace-nowrap transition-colors cursor-pointer;
             }
             .filter-btn.active {
                 @apply bg-green-600 text-white border-green-600;
@@ -103,40 +105,62 @@ const allSpots = await getCollection('spots');
 
         <!-- 스크립트 (검색 및 필터 기능) -->
         <script>
-            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-            const spotCards = document.querySelectorAll('.spot-card');
+            // 타입스크립트 에러 방지를 위해 타입을 'any'나 HTMLElement로 단언합니다.
+            const searchInput = document.getElementById('searchInput');
+            const container = document.getElementById('spot-list');
             const filterBtns = document.querySelectorAll('.filter-btn');
+            let allCards = Array.from(document.querySelectorAll('.spot-card'));
 
             // 1. 검색 기능
-            searchInput.addEventListener('input', (e) => {
-                const keyword = (e.target as HTMLInputElement).value.toLowerCase();
-                spotCards.forEach(card => {
+            searchInput?.addEventListener('input', (e) => {
+                const keyword = e.target.value.toLowerCase();
+                allCards.forEach(card => {
                     const title = card.getAttribute('data-title')?.toLowerCase() || '';
                     if (title.includes(keyword)) {
-                        (card as HTMLElement).style.display = 'block';
+                        card.style.display = 'block'; // 보이기
                     } else {
-                        (card as HTMLElement).style.display = 'none';
+                        card.style.display = 'none';  // 숨기기
                     }
                 });
             });
 
-            // 2. 탭 버튼 클릭 (단순 UI 전환용, 실제 정렬 로직은 다음 단계에서 상세 구현)
+            // 2. 탭 버튼 클릭 (필터링 및 정렬)
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // 버튼 스타일 초기화
                     filterBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
-                    // 거리순 정렬 예시
-                    if (btn.getAttribute('data-sort') === 'distance') {
-                        const container = document.getElementById('spot-list');
-                        const cards = Array.from(container!.children);
-                        cards.sort((a, b) => {
+                    const type = btn.getAttribute('data-type');
+                    const value = btn.getAttribute('data-value');
+
+                    // 초기화: 모든 카드 보이기
+                    allCards.forEach(card => card.style.display = 'block');
+
+                    if (type === 'all') {
+                        // 전체보기: 원래 순서대로 (DOM 재정렬이 필요하다면 추가 로직 필요)
+                        // 여기서는 단순히 숨김 해제만 합니다.
+                    } 
+                    else if (type === 'sort-distance') {
+                        // 거리순 정렬
+                        const sorted = [...allCards].sort((a, b) => {
                             const distA = parseFloat(a.getAttribute('data-distance') || '0');
                             const distB = parseFloat(b.getAttribute('data-distance') || '0');
                             return distA - distB;
                         });
-                        container!.innerHTML = '';
-                        cards.forEach(card => container!.appendChild(card));
+                        container.innerHTML = ''; // 비우고
+                        sorted.forEach(card => container.appendChild(card)); // 다시 채우기
+                    } 
+                    else if (type === 'category' || type === 'region') {
+                        // 종류별 / 지역별 필터링
+                        allCards.forEach(card => {
+                            const cardValue = card.getAttribute(`data-${type}`);
+                            if (cardValue === value) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
                     }
                 });
             });
