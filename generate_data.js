@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-// 저장할 폴더 경로
-const targetDir = path.join('src', 'content', 'spots');
+// 저장할 폴더 경로 (현재 위치 기준)
+const targetDir = path.join(process.cwd(), 'src', 'content', 'spots');
 
 // 폴더가 없으면 생성
 if (!fs.existsSync(targetDir)){
@@ -268,9 +268,8 @@ image: "https://images.unsplash.com/photo-1580137197581-4407450c063a?auto=format
     }
 ];
 
-// 파일 생성 실행
 spots.forEach(spot => {
     const filePath = path.join(targetDir, spot.filename);
     fs.writeFileSync(filePath, spot.content);
     console.log(`✅ 생성 완료: ${spot.filename}`);
-}); 
+});

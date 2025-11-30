@@ -68,13 +68,41 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             <div id="no-result" class="hidden text-center py-10 text-slate-400">검색 결과가 없습니다.</div>
         </main>
 
-        <style>
-            .main-tab.active { color: #1e293b; border-color: #1e293b; }
-            .sub-chip { display: inline-block; padding: 6px 12px; margin-right: 8px; font-size: 0.75rem; font-weight: 500; color: #475569; background-color: white; border: 1px solid #cbd5e1; border-radius: 9999px; transition: background-color 0.2s, color 0.2s; cursor: pointer; }
-            .sub-chip.active { background-color: #1e293b; color: white; border-color: #1e293b; }
-            .no-scrollbar::-webkit-scrollbar { display: none; }
-            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        </style>
+            /* src/pages/index.astro 내부 <style> 태그 */
+            <style>
+                .main-tab.active {
+                    color: #1e293b; /* slate-800 */
+                    border-color: #1e293b;
+                }
+                /* ✨ 하위 칩 스타일 개선 */
+                .sub-chip {
+                    display: inline-block;
+                    padding: 8px 16px;      /* 내부 여백 넉넉하게 */
+                    margin-right: 8px;      /* 버튼 사이 간격 */
+                    margin-bottom: 4px;     /* 줄바꿈 시 간격 */
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    color: #475569;         /* slate-600 */
+                    background-color: white;
+                    border: 1px solid #cbd5e1; /* slate-300 */
+                    border-radius: 9999px;  /* 둥글게 */
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    white-space: nowrap;    /* 글자 줄바꿈 방지 */
+                }
+                .sub-chip:hover {
+                    background-color: #f1f5f9; /* slate-100 */
+                }
+                .sub-chip.active {
+                    background-color: #1e293b; /* slate-800 */
+                    color: white;
+                    border-color: #1e293b;
+                }
+                
+                /* 가로 스크롤바 숨김 */
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            </style>
 
         <script>
             const searchInput = document.getElementById('searchInput');
@@ -105,9 +133,18 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 });
             });
 
+            // src/pages/index.astro 내부 <script>
+
             function renderSubChips(items, type) {
-                subFilterContainer.classList.remove('hidden');
-                subFilterContainer.innerHTML = '';
+                const container = document.getElementById('sub-filter-container');
+                
+                // 1. 컨테이너 보이게 설정 (flex로 가로 배치)
+                container.classList.remove('hidden');
+                container.style.display = 'flex'; // flex 강제 적용
+                container.style.gap = '8px';      // 간격 추가
+                container.innerHTML = '';
+                
+                // 2. '전체' 버튼 추가
                 const allBtn = document.createElement('button');
                 allBtn.className = 'sub-chip active';
                 allBtn.innerText = '전체';
@@ -116,8 +153,9 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                     allBtn.classList.add('active');
                     resetFilter(); 
                 };
-                subFilterContainer.appendChild(allBtn);
+                container.appendChild(allBtn);
 
+                // 3. 나머지 항목 버튼 추가
                 items.forEach(item => {
                     const btn = document.createElement('button');
                     btn.className = 'sub-chip';
@@ -127,7 +165,7 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                         btn.classList.add('active');
                         filterList(type, item);
                     };
-                    subFilterContainer.appendChild(btn);
+                    container.appendChild(btn);
                 });
             }
 
