@@ -96,15 +96,29 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
 
         </main>
 
+        <!-- ✨ [수정됨] @apply 제거하고 표준 CSS로 변경 (에러 원천 차단) -->
         <style>
             .main-tab.active {
-                @apply text-slate-800 border-slate-800;
+                color: #1e293b; /* slate-800 */
+                border-color: #1e293b;
             }
             .sub-chip {
-                @apply inline-block px-3 py-1.5 mr-2 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-full transition-colors cursor-pointer;
+                display: inline-block;
+                padding: 6px 12px;
+                margin-right: 8px;
+                font-size: 0.75rem; /* xs */
+                font-weight: 500;
+                color: #475569; /* slate-600 */
+                background-color: white;
+                border: 1px solid #cbd5e1; /* slate-300 */
+                border-radius: 9999px; /* full */
+                transition: background-color 0.2s, color 0.2s;
+                cursor: pointer;
             }
             .sub-chip.active {
-                @apply bg-slate-800 text-white border-slate-800;
+                background-color: #1e293b; /* slate-800 */
+                color: white;
+                border-color: #1e293b;
             }
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -117,14 +131,16 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             const subFilterContainer = document.getElementById('sub-filter-container');
             const noResult = document.getElementById('no-result');
             
-            let allCards = Array.from(document.querySelectorAll('.spot-card'));
-            const categories = ["자연", "문화유산", "국립공원시설", "기타"]; // 종류 데이터
-            const regions = ["구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; // 지자체 데이터
+            // ✨ [중요] 초기 로딩 시 a 태그(링크)를 포함한 카드 전체를 가져옵니다.
+            // 이렇게 해야 정렬할 때 링크가 깨지지 않고 통째로 이동합니다.
+            let allCards = Array.from(document.querySelectorAll('.spot-card')).map(card => card.closest('a'));
+
+            const categories = ["자연", "문화유산", "국립공원시설", "기타"]; 
+            const regions = ["구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
 
             // 1. 메인 탭 클릭
             mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // 탭 스타일 변경
                     mainTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
 
@@ -132,7 +148,7 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                     
                     if (mode === 'distance') {
                         subFilterContainer.classList.add('hidden');
-                        resetFilter(); // 필터 해제하고 전체 보이기
+                        resetFilter(); 
                         sortByDistance();
                     } else if (mode === 'category') {
                         renderSubChips(categories, 'category');
@@ -147,14 +163,13 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
                 subFilterContainer.classList.remove('hidden');
                 subFilterContainer.innerHTML = '';
                 
-                // '전체' 칩 추가
                 const allBtn = document.createElement('button');
                 allBtn.className = 'sub-chip active';
                 allBtn.innerText = '전체';
                 allBtn.onclick = () => {
                     document.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('active'));
                     allBtn.classList.add('active');
-                    resetFilter(); // 전체보기
+                    resetFilter(); 
                 };
                 subFilterContainer.appendChild(allBtn);
 
@@ -174,9 +189,8 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
             // 3. 필터링 로직
             function filterList(type, value) {
                 let visibleCount = 0;
-                allCards.forEach(card => {
-                    // 부모인 a 태그를 제어해야 함
-                    const cardLink = card.closest('a');
+                allCards.forEach(cardLink => {
+                    const card = cardLink.querySelector('.spot-card');
                     const cardValue = card.getAttribute(`data-${type}`);
                     
                     if (cardValue === value) {
@@ -191,25 +205,27 @@ allSpots.sort((a, b) => a.data.distance - b.data.distance);
 
             // 4. 필터 초기화 (전체 보이기)
             function resetFilter() {
-                allCards.forEach(card => card.closest('a').style.display = 'block');
+                allCards.forEach(cardLink => cardLink.style.display = 'block');
                 checkEmpty(allCards.length);
             }
 
             // 5. 거리순 정렬
             function sortByDistance() {
                 const sorted = [...allCards].sort((a, b) => {
-                    return parseFloat(a.getAttribute('data-distance')) - parseFloat(b.getAttribute('data-distance'));
+                    const distA = parseFloat(a.querySelector('.spot-card').getAttribute('data-distance'));
+                    const distB = parseFloat(b.querySelector('.spot-card').getAttribute('data-distance'));
+                    return distA - distB;
                 });
-                // DOM 다시 붙이기 (a 태그 단위로 이동)
-                sorted.forEach(card => container.appendChild(card.closest('a')));
+                container.innerHTML = '';
+                sorted.forEach(card => container.appendChild(card));
             }
 
             // 6. 검색 기능
             searchInput.addEventListener('input', (e) => {
                 const keyword = e.target.value.toLowerCase();
                 let visibleCount = 0;
-                allCards.forEach(card => {
-                    const cardLink = card.closest('a');
+                allCards.forEach(cardLink => {
+                    const card = cardLink.querySelector('.spot-card');
                     const title = card.getAttribute('data-title').toLowerCase();
                     if (title.includes(keyword)) {
                         cardLink.style.display = 'block';
