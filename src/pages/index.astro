@@ -1,12 +1,11 @@
 ---
-// 1. 필요한 기능 가져오기
 import { getCollection } from 'astro:content';
-
-// 2. 스타일 파일 연결
 import '../styles/global.css'; 
 
-// 3. 모든 관광지 데이터 가져오기
 const allSpots = await getCollection('spots');
+
+// 기본 정렬: 거리순
+allSpots.sort((a, b) => a.data.distance - b.data.distance);
 ---
 
 <html lang="ko">
@@ -15,163 +14,216 @@ const allSpots = await getCollection('spots');
 		<meta name="viewport" content="width=device-width" />
 		<title>지리산 생태탐방원 인근 관광지</title>
 	</head>
-	<body class="bg-gray-50 text-gray-800">
+	<body class="bg-slate-50 text-slate-800 font-sans">
         
-        <!-- 상단 헤더 -->
-		<header class="bg-green-700 text-white p-5 shadow-md sticky top-0 z-50">
-            <div class="max-w-xl mx-auto">
-			    <h1 class="text-xl font-bold flex items-center gap-2">
-                    🏔️ 지리산 탐방원 인근 관광지
+		<header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+			    <h1 class="text-lg font-bold text-slate-800">
+                    ⛰️ 지리산 인근 관광지
                 </h1>
-                <p class="text-xs text-green-100 mt-1">전남 구례군 마산면 화엄사로 402-25 기준</p>
+                <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">탐방원 기준</span>
             </div>
 		</header>
 
-        <main class="max-w-xl mx-auto p-4 pb-20">
+        <main class="max-w-md mx-auto p-4 pb-20">
             
             <!-- 통합 검색창 -->
             <div class="relative mb-6">
-                <input type="text" id="searchInput" placeholder="관광지 이름 검색..." 
-                    class="w-full p-3 pl-10 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                <span class="absolute left-3 top-3.5 text-gray-400">🔍</span>
+                <input type="text" id="searchInput" placeholder="관광지 이름 검색" 
+                    class="w-full p-3 pl-10 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-500 transition-colors">
+                <span class="absolute left-3 top-3.5 text-slate-400">🔍</span>
             </div>
 
-            <!-- 탭 메뉴 (필터/정렬) -->
-            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
-                <button class="filter-btn active" data-type="all">전체</button>
-                <button class="filter-btn" data-type="sort-distance">📏 거리순</button>
-                <button class="filter-btn" data-type="category" data-value="문화유산">🏯 문화유산</button>
-                <button class="filter-btn" data-type="category" data-value="자연">🌲 자연</button>
-                <button class="filter-btn" data-type="region" data-value="구례">📍 구례</button>
+            <!-- 1차 탭 (메인 필터) -->
+            <div class="flex border-b border-slate-200 mb-4">
+                <button class="main-tab active flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="distance">
+                    📏 거리순
+                </button>
+                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="category">
+                    🏷️ 종류별
+                </button>
+                <button class="main-tab flex-1 py-2 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600" data-mode="region">
+                    📍 지자체별
+                </button>
             </div>
 
-            <!-- 관광지 리스트 -->
-            <div id="spot-list" class="grid gap-4">
+            <!-- 2차 탭 (하위 필터 - 초기에는 숨김) -->
+            <div id="sub-filter-container" class="mb-6 hidden overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
+                <!-- 자바스크립트로 버튼이 들어갈 자리 -->
+            </div>
+
+            <!-- 리스트 영역 -->
+            <div id="spot-list" class="space-y-3">
                 {allSpots.map((spot) => (
-                    <article class="spot-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
-                        data-title={spot.data.title}
-                        data-category={spot.data.category}
-                        data-region={spot.data.region}
-                        data-distance={spot.data.distance}
-                    >
-                        <div class="flex h-32">
-                            <!-- 이미지 (없으면 회색 박스) -->
-                            <div class="w-1/3 bg-gray-200 flex-shrink-0 relative">
+                    <a href={`/spots/${spot.slug}`} class="block">
+                        <article class="spot-card bg-white rounded-lg border border-slate-200 overflow-hidden flex h-28 transition-transform active:scale-95"
+                            data-title={spot.data.title}
+                            data-category={spot.data.category}
+                            data-region={spot.data.region}
+                            data-distance={spot.data.distance}
+                        >
+                            <!-- 이미지 -->
+                            <div class="w-28 bg-slate-200 flex-shrink-0 relative">
                                 {spot.data.image ? (
                                     <img src={spot.data.image} alt={spot.data.title} class="w-full h-full object-cover" />
                                 ) : (
-                                    <span class="absolute inset-0 flex items-center justify-center text-2xl">🏞️</span>
+                                    <div class="w-full h-full flex items-center justify-center text-slate-400 text-2xl">⛰️</div>
                                 )}
                             </div>
                             
                             <!-- 정보 -->
-                            <div class="w-2/3 p-4 flex flex-col justify-between">
+                            <div class="flex-1 p-3 flex flex-col justify-between">
                                 <div>
                                     <div class="flex gap-1 mb-1">
-                                        <span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">{spot.data.region}</span>
-                                        <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{spot.data.category}</span>
+                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{spot.data.region}</span>
+                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{spot.data.category}</span>
                                     </div>
-                                    <h2 class="text-lg font-bold leading-tight mb-1">{spot.data.title}</h2>
-                                    <p class="text-xs text-gray-500 truncate">{spot.data.address}</p>
+                                    <h2 class="text-base font-bold text-slate-800 leading-tight">{spot.data.title}</h2>
                                 </div>
-                                <div class="flex items-center text-sm font-medium text-orange-600">
-                                    🚗 {spot.data.distance}km <span class="text-gray-400 text-xs ml-1">({spot.data.time})</span>
+                                <div class="text-sm font-bold text-green-700 flex items-center gap-1">
+                                    <span>📍 {spot.data.distance}km</span>
+                                    <span class="text-xs text-slate-400 font-normal">({spot.data.time})</span>
                                 </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </a>
                 ))}
+            </div>
+
+            <div id="no-result" class="hidden text-center py-10 text-slate-400">
+                검색 결과가 없습니다.
             </div>
 
         </main>
 
-        <!-- ✨ [수정됨] @apply 대신 표준 CSS를 사용하여 에러 원천 차단 -->
         <style>
-            .filter-btn {
-                padding: 8px 16px;
-                background-color: white;
-                border: 1px solid #e5e7eb; /* gray-200 */
-                border-radius: 9999px; /* full */
-                font-size: 0.875rem; /* sm */
-                font-weight: 500;
-                color: #4b5563; /* gray-600 */
-                white-space: nowrap;
-                transition: background-color 0.2s, color 0.2s;
-                cursor: pointer;
+            .main-tab.active {
+                @apply text-slate-800 border-slate-800;
             }
-            .filter-btn.active {
-                background-color: #16a34a; /* green-600 */
-                color: white;
-                border-color: #16a34a;
+            .sub-chip {
+                @apply inline-block px-3 py-1.5 mr-2 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded-full transition-colors cursor-pointer;
             }
-            .no-scrollbar::-webkit-scrollbar {
-                display: none;
+            .sub-chip.active {
+                @apply bg-slate-800 text-white border-slate-800;
             }
-            .no-scrollbar {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         </style>
 
-        <!-- 스크립트 (검색 및 필터 기능) -->
         <script>
             const searchInput = document.getElementById('searchInput');
             const container = document.getElementById('spot-list');
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            // 초기 로딩 시 모든 카드 요소를 배열로 저장해둡니다.
+            const mainTabs = document.querySelectorAll('.main-tab');
+            const subFilterContainer = document.getElementById('sub-filter-container');
+            const noResult = document.getElementById('no-result');
+            
             let allCards = Array.from(document.querySelectorAll('.spot-card'));
+            const categories = ["자연", "문화유산", "국립공원시설", "기타"]; // 종류 데이터
+            const regions = ["구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; // 지자체 데이터
 
-            // 1. 검색 기능
-            searchInput?.addEventListener('input', (e) => {
-                const keyword = e.target.value.toLowerCase();
-                allCards.forEach(card => {
-                    const title = card.getAttribute('data-title')?.toLowerCase() || '';
-                    if (title.includes(keyword)) {
-                        card.style.display = 'block'; 
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
+            // 1. 메인 탭 클릭
+            mainTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 탭 스타일 변경
+                    mainTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
 
-            // 2. 탭 버튼 클릭 (필터링 및 정렬)
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                    const mode = tab.getAttribute('data-mode');
                     
-                    const type = btn.getAttribute('data-type');
-                    const value = btn.getAttribute('data-value');
-
-                    // 일단 모두 보이게 초기화
-                    allCards.forEach(card => card.style.display = 'block');
-
-                    if (type === 'all') {
-                        // 전체보기 (초기화 상태 유지)
-                    } 
-                    else if (type === 'sort-distance') {
-                        // 거리순 정렬
-                        const sorted = [...allCards].sort((a, b) => {
-                            const distA = parseFloat(a.getAttribute('data-distance') || '0');
-                            const distB = parseFloat(b.getAttribute('data-distance') || '0');
-                            return distA - distB;
-                        });
-                        container.innerHTML = ''; 
-                        sorted.forEach(card => container.appendChild(card)); 
-                    } 
-                    else if (type === 'category' || type === 'region') {
-                        // 종류별 / 지역별 필터링
-                        allCards.forEach(card => {
-                            const cardValue = card.getAttribute(`data-${type}`);
-                            if (cardValue === value) {
-                                card.style.display = 'block';
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
+                    if (mode === 'distance') {
+                        subFilterContainer.classList.add('hidden');
+                        resetFilter(); // 필터 해제하고 전체 보이기
+                        sortByDistance();
+                    } else if (mode === 'category') {
+                        renderSubChips(categories, 'category');
+                    } else if (mode === 'region') {
+                        renderSubChips(regions, 'region');
                     }
                 });
             });
+
+            // 2. 하위 칩 생성 함수
+            function renderSubChips(items, type) {
+                subFilterContainer.classList.remove('hidden');
+                subFilterContainer.innerHTML = '';
+                
+                // '전체' 칩 추가
+                const allBtn = document.createElement('button');
+                allBtn.className = 'sub-chip active';
+                allBtn.innerText = '전체';
+                allBtn.onclick = () => {
+                    document.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('active'));
+                    allBtn.classList.add('active');
+                    resetFilter(); // 전체보기
+                };
+                subFilterContainer.appendChild(allBtn);
+
+                items.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = 'sub-chip';
+                    btn.innerText = item;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('active'));
+                        btn.classList.add('active');
+                        filterList(type, item);
+                    };
+                    subFilterContainer.appendChild(btn);
+                });
+            }
+
+            // 3. 필터링 로직
+            function filterList(type, value) {
+                let visibleCount = 0;
+                allCards.forEach(card => {
+                    // 부모인 a 태그를 제어해야 함
+                    const cardLink = card.closest('a');
+                    const cardValue = card.getAttribute(`data-${type}`);
+                    
+                    if (cardValue === value) {
+                        cardLink.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        cardLink.style.display = 'none';
+                    }
+                });
+                checkEmpty(visibleCount);
+            }
+
+            // 4. 필터 초기화 (전체 보이기)
+            function resetFilter() {
+                allCards.forEach(card => card.closest('a').style.display = 'block');
+                checkEmpty(allCards.length);
+            }
+
+            // 5. 거리순 정렬
+            function sortByDistance() {
+                const sorted = [...allCards].sort((a, b) => {
+                    return parseFloat(a.getAttribute('data-distance')) - parseFloat(b.getAttribute('data-distance'));
+                });
+                // DOM 다시 붙이기 (a 태그 단위로 이동)
+                sorted.forEach(card => container.appendChild(card.closest('a')));
+            }
+
+            // 6. 검색 기능
+            searchInput.addEventListener('input', (e) => {
+                const keyword = e.target.value.toLowerCase();
+                let visibleCount = 0;
+                allCards.forEach(card => {
+                    const cardLink = card.closest('a');
+                    const title = card.getAttribute('data-title').toLowerCase();
+                    if (title.includes(keyword)) {
+                        cardLink.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        cardLink.style.display = 'none';
+                    }
+                });
+                checkEmpty(visibleCount);
+            });
+
+            function checkEmpty(count) {
+                noResult.style.display = count === 0 ? 'block' : 'none';
+            }
         </script>
 	</body>
 </html>

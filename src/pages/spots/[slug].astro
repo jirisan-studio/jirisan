@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import '../../styles/global.css';
+
+// 1. 정적 경로 생성 (미리 페이지를 다 만들어둠)
+export async function getStaticPaths() {
+  const spots = await getCollection('spots');
+  return spots.map(spot => ({
+    params: { slug: spot.slug },
+    props: { spot },
+  }));
+}
+
+const { spot } = Astro.props;
+const { Content } = await spot.render();
+---
+
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{spot.data.title} - 지리산 관광지</title>
+</head>
+<body class="bg-white text-slate-800">
+
+    <!-- 상단 네비게이션 -->
+    <header class="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-slate-100 z-50 px-4 py-3 flex items-center">
+        <a href="/" class="text-lg mr-4">🔙</a>
+        <h1 class="text-base font-bold truncate">{spot.data.title}</h1>
+    </header>
+
+    <main class="pb-10">
+        <!-- 대표 이미지 -->
+        <div class="w-full h-64 bg-slate-100 relative">
+            {spot.data.image ? (
+                <img src={spot.data.image} alt={spot.data.title} class="w-full h-full object-cover" />
+            ) : (
+                <div class="w-full h-full flex items-center justify-center text-4xl">🏞️</div>
+            )}
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 pt-20">
+                <div class="flex gap-2 mb-1">
+                    <span class="text-xs bg-white/20 text-white px-2 py-0.5 rounded backdrop-blur-md">{spot.data.region}</span>
+                    <span class="text-xs bg-white/20 text-white px-2 py-0.5 rounded backdrop-blur-md">{spot.data.category}</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white shadow-sm">{spot.data.title}</h2>
+            </div>
+        </div>
+
+        <!-- 기본 정보 -->
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-500">탐방원에서의 거리</span>
+                <span class="text-lg font-bold text-green-700">🚗 {spot.data.distance}km <span class="text-sm font-normal text-slate-400">({spot.data.time})</span></span>
+            </div>
+            <p class="text-sm text-slate-600 flex items-start gap-1">
+                📍 <span class="flex-1">{spot.data.address}</span>
+            </p>
+        </div>
+
+        <!-- 본문 내용 -->
+        <div class="p-5 prose prose-slate prose-sm max-w-none">
+            <Content />
+        </div>
+
+        <!-- 하단 검색 버튼 -->
+        <div class="p-5 space-y-3 bg-slate-50 mt-5">
+            <p class="text-xs text-center text-slate-400 mb-2">더 자세한 정보가 궁금하다면?</p>
+            <a href={`https://www.google.com/search?q=${spot.data.region} ${spot.data.title}`} target="_blank" class="block w-full py-3 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+                G 구글에서 검색하기
+            </a>
+            <a href={`https://www.youtube.com/results?search_query=${spot.data.region} ${spot.data.title}`} target="_blank" class="block w-full py-3 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+                📺 유튜브 영상 찾아보기
+            </a>
+            <a href={`https://exam1-beige.vercel.app/?q=${spot.data.title}`} target="_blank" class="block w-full py-3 bg-green-600 text-white rounded-lg text-center text-sm font-bold shadow-sm hover:bg-green-700 transition">
+                🏛️ 국가유산 정보 보기
+            </a>
+        </div>
+    </main>
+
+</body>
+</html>
