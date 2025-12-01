@@ -5,7 +5,42 @@ const targetDir = path.join(process.cwd(), 'src', 'content', 'spots');
 if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
 
 const spots = [
-    // 기존 17개 + 신규 18개 (좌표 포함)
+    // --- 신규 추가된 2곳 ---
+    {
+        filename: "train_village.md",
+        content: `---
+title: "섬진강 기차마을"
+category: "기타"
+region: "곡성"
+distance: 18.0
+time: "20분"
+address: "전남 곡성군 오곡면 기차마을로 232"
+image: "https://images.unsplash.com/photo-1541427468627-a89a96e5ca1d?auto=format&fit=crop&w=800&q=80"
+lat: 35.2765
+lng: 127.2976
+---
+# 추억과 낭만의 증기기관차
+구 곡성역을 활용해 만든 기차 테마파크입니다.
+실제 운행하는 증기기관차와 레일바이크를 타볼 수 있으며, 1004종의 장미가 피어나는 장미공원이 유명합니다.
+아이들과 함께하기 좋은 가족 여행지입니다.`
+    },
+    {
+        filename: "gurye_market.md",
+        content: `---
+title: "구례 5일시장"
+category: "기타"
+region: "구례"
+distance: 6.0
+time: "10분"
+address: "전남 구례군 구례읍 5일시장1길 1"
+image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80"
+---
+# 지리산의 정이 넘치는 장터
+매월 3일, 8일에 열리는 전통 5일장입니다.
+지리산에서 채취한 각종 산나물과 약재, 그리고 섬진강의 민물고기 등을 만날 수 있습니다.
+장터 국밥과 수구레 국밥 등 먹거리가 풍부하여 관광객들에게도 인기가 높습니다.`
+    },
+    // --- 기존 데이터 ---
     { filename: "yeongoksa.md", content: `---
 title: "연곡사"
 category: "문화유산"
@@ -472,6 +507,7 @@ lng: 127.4933
 멸종 위기 반달가슴곰을 복원하고 연구하는 곳입니다.`}
 ];
 
+// 파일 생성 실행
 spots.forEach(spot => {
     const filePath = path.join(targetDir, spot.filename);
     fs.writeFileSync(filePath, spot.content);
