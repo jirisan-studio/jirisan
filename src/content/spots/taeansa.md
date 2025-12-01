@@ -2,8 +2,8 @@
 title: "태안사"
 category: "문화유산"
 region: "곡성"
-distance: 28.0
-time: "35분"
+distance: 32.0
+time: "37분"
 address: "전남 곡성군 죽곡면 태안로 622-215"
 image: "https://images.unsplash.com/photo-1540644093797-6304dfe24e76?auto=format&fit=crop&w=800&q=80"
 lat: 35.1383

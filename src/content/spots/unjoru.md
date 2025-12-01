@@ -2,8 +2,8 @@
 title: "운조루"
 category: "문화유산"
 region: "구례"
-distance: 9.0
-time: "15분"
+distance: 7.6
+time: "10분"
 address: "전남 구례군 토지면 운조루길 59"
 image: "https://images.unsplash.com/photo-1584527266915-69540c83c227?auto=format&fit=crop&w=800&q=80"
 lat: 35.2072

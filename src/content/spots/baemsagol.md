@@ -2,8 +2,8 @@
 title: "뱀사골"
 category: "자연"
 region: "남원"
-distance: 24.0
-time: "30분"
+distance: 66.0
+time: "74분"
 address: "전북 남원시 산내면 부운리"
 image: "https://images.unsplash.com/photo-1544989164-c44a6cb36d52?auto=format&fit=crop&w=800&q=80"
 lat: 35.3622

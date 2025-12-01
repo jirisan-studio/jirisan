@@ -2,8 +2,8 @@
 title: "쌍산재"
 category: "문화유산"
 region: "구례"
-distance: 9.5
-time: "15분"
+distance: 4.2
+time: "6분"
 address: "전남 구례군 마산면 사도리 632"
 image: "https://images.unsplash.com/photo-1592237968577-587389392830?auto=format&fit=crop&w=800&q=80"
 lat: 35.2247

@@ -2,8 +2,8 @@
 title: "연곡사"
 category: "문화유산"
 region: "구례"
-distance: 18.5
-time: "25분"
+distance: 23.0
+time: "30분"
 address: "전남 구례군 토지면 피아골로 774"
 image: "https://images.unsplash.com/photo-1605628472266-005522668285?auto=format&fit=crop&w=800&q=80"
 lat: 35.2342

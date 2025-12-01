@@ -2,8 +2,8 @@
 title: "섬진강 대숲길"
 category: "자연"
 region: "구례"
-distance: 11.0
-time: "18분"
+distance: 8.1
+time: "12분"
 address: "전남 구례군 구례읍 원방리 1"
 image: "https://images.unsplash.com/photo-1445296608115-37f3c932f657?auto=format&fit=crop&w=800&q=80"
 lat: 35.2067

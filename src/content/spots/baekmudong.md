@@ -2,8 +2,8 @@
 title: "백무동계곡"
 category: "자연"
 region: "함양"
-distance: 45.0
-time: "50분"
+distance: 72.0
+time: "62분"
 address: "경남 함양군 마천면 강청리"
 image: "https://images.unsplash.com/photo-1470753675953-3b383c527705?auto=format&fit=crop&w=800&q=80"
 lat: 35.3653

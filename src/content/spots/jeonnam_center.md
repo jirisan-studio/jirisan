@@ -2,7 +2,7 @@
 title: "화엄탐방안내소"
 category: "국립공원시설"
 region: "구례"
-distance: 0.2
+distance: 0.7
 time: "1분"
 address: "전남 구례군 마산면 화엄사로 402-31"
 image: "https://images.unsplash.com/photo-1559586616-361e18714958?auto=format&fit=crop&w=800&q=80"

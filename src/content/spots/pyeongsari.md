@@ -2,8 +2,8 @@
 title: "평사리공원"
 category: "자연"
 region: "하동"
-distance: 23.0
-time: "28분"
+distance: 28.0
+time: "30분"
 address: "경남 하동군 악양면 평사리"
 image: "https://images.unsplash.com/photo-1625888972026-3f195232745e?auto=format&fit=crop&w=800&q=80"
 lat: 35.1672

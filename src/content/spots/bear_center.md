@@ -2,8 +2,8 @@
 title: "반달가슴곰공존센터"
 category: "국립공원시설"
 region: "구례"
-distance: 1.2
-time: "3분"
+distance: 0.2
+time: "1분"
 address: "전남 구례군 마산면 화엄사로 402-31"
 image: "https://images.unsplash.com/photo-1588167056840-137d6384108f?auto=format&fit=crop&w=800&q=80"
 lat: 35.2481

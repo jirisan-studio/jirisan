@@ -2,7 +2,7 @@
 title: "하동송림"
 category: "자연"
 region: "하동"
-distance: 35.0
+distance: 38.0
 time: "40분"
 address: "경남 하동군 하동읍 광평리 443-10"
 image: "https://images.unsplash.com/photo-1500323718535-900e5f5d092e?auto=format&fit=crop&w=800&q=80"

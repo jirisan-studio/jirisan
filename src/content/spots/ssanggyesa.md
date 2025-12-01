@@ -2,8 +2,8 @@
 title: "쌍계사"
 category: "문화유산"
 region: "하동"
-distance: 38.0
-time: "45분"
+distance: 24.0
+time: "29분"
 address: "경남 하동군 화개면 쌍계사길 59"
 image: "https://images.unsplash.com/photo-1518640165980-d3e0e2aa6c1e?auto=format&fit=crop&w=800&q=80"
 lat: 35.2324

@@ -2,8 +2,8 @@
 title: "섬진강 기차마을"
 category: "기타"
 region: "곡성"
-distance: 18.0
-time: "20분"
+distance: 32.0
+time: "36분"
 address: "전남 곡성군 오곡면 기차마을로 232"
 image: "https://images.unsplash.com/photo-1541427468627-a89a96e5ca1d?auto=format&fit=crop&w=800&q=80"
 lat: 35.2765

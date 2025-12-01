@@ -2,8 +2,8 @@
 title: "칠선계곡"
 category: "자연"
 region: "함양"
-distance: 50.0
-time: "55분"
+distance: 62.0
+time: "66분"
 address: "경남 함양군 마천면 추성리"
 image: "https://images.unsplash.com/photo-1464244929837-92a7583080c2?auto=format&fit=crop&w=800&q=80"
 lat: 35.3789

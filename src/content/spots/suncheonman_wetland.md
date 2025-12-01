@@ -2,8 +2,8 @@
 title: "순천만습지"
 category: "자연"
 region: "순천"
-distance: 65.0
-time: "55분"
+distance: 53.0
+time: "48분"
 address: "전남 순천시 순천만길 513-25"
 image: "https://images.unsplash.com/photo-1571732022876-a682d3b1024d?auto=format&fit=crop&w=800&q=80"
 lat: 34.9151

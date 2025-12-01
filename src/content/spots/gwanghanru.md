@@ -2,7 +2,7 @@
 title: "광한루"
 category: "문화유산"
 region: "남원"
-distance: 28.0
+distance: 31.0
 time: "35분"
 address: "전북 남원시 요천로 1447"
 image: "https://images.unsplash.com/photo-1621910306569-6f513c293422?auto=format&fit=crop&w=800&q=80"
