@@ -31,7 +31,6 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 	</head>
 	<body class="bg-slate-50 text-slate-800 font-sans">
         
-        <!-- 5. 헤더 디자인 수정 (폰트 키우고 여백 추가) -->
 		<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
             <div class="max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center">
                 <div class="flex items-center gap-2 mb-2">
@@ -47,13 +46,18 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
         <main class="max-w-3xl mx-auto p-4 pb-20">
             
             <!-- 통합 검색창 -->
-            <div class="relative mb-8 mt-2">
+            <div class="relative mb-2 mt-2">
                 <input type="text" id="searchInput" placeholder="관광지 이름 검색 (예: 화엄사, 노고단)" 
                     class="w-full p-3.5 pl-11 bg-white border border-slate-300 rounded-xl text-base focus:outline-none focus:border-slate-600 focus:ring-1 focus:ring-slate-600 transition-all shadow-sm">
                 <span class="absolute left-4 top-4 text-slate-400 text-lg">🔍</span>
             </div>
+            
+            <!-- 1. 안내 문구 추가 -->
+            <p class="text-xs text-slate-500 text-center mb-6">
+                💡 관광지 이름을 클릭하시면 자세한 내용을 보실 수 있어요
+            </p>
 
-            <!-- 탭 메뉴 -->
+            <!-- 탭 메뉴 + 2. 국가유산 검색 링크 추가 -->
             <div class="flex border-b border-slate-200 mb-6">
                 <button class="main-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="category">
                     📏 거리순 ({allSpots.length})
@@ -61,9 +65,13 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 <button class="main-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="region">
                     📍 지자체별
                 </button>
+                <!-- 링크 탭 (스타일은 같지만 기능은 링크) -->
+                <a href="https://exam1-beige.vercel.app/" target="_blank" class="flex-1 py-3 text-sm font-bold text-green-600 border-b-2 border-transparent hover:text-green-800 hover:bg-slate-50 transition-colors text-center flex items-center justify-center gap-1">
+                    🏛️ 국가유산 검색 <span class="text-xs">↗</span>
+                </a>
             </div>
 
-            <!-- 1. 하위 필터 (알약 디자인 적용) -->
+            <!-- 하위 필터 (알약 디자인 적용) -->
             <div id="sub-filter-container" class="mb-8 flex flex-wrap gap-2 justify-center"></div>
 
             <!-- 리스트 영역 -->
@@ -98,7 +106,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                         <!-- 상세 내용 (아코디언) -->
                         <div class="detail-area hidden bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-5 animate-fade-in">
                              
-                            <!-- 4. 배치 변경: 주소 -> 설명 -> 지도 -> 버튼 -->
+                            <!-- 주소 -->
                             <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
                                 <span class="shrink-0">📍</span> <span class="font-medium">{spot.data.address}</span>
                             </p>
@@ -108,7 +116,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                                 <spot.Content />
                             </div>
 
-                            <!-- 지도 버튼 영역 (설명 아래로 이동) -->
+                            <!-- 지도 버튼 영역 -->
                             <div class="mb-5">
                                 <button class="w-full py-3 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition shadow-sm map-toggle-btn"
                                     data-lat={spot.data.lat} 
@@ -142,7 +150,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 <span class="text-slate-400 font-medium">검색 결과가 없습니다.</span>
             </div>
             
-            <!-- 3. 더보기 버튼 -->
+            <!-- 더보기 버튼 -->
             <div class="text-center mt-8">
                 <button id="loadMoreBtn" class="hidden px-8 py-3 bg-white border border-slate-300 rounded-full text-slate-600 font-bold shadow-sm hover:bg-slate-50 transition text-sm">
                     결과 더보기 +
@@ -150,7 +158,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             </div>
         </main>
 
-        <!-- 2. 관련 사이트 링크 (5개 수정됨) -->
+        <!-- 관련 사이트 링크 -->
         <div class="related-section max-w-3xl mx-auto px-4 mb-10">
             <h3 class="text-sm text-slate-400 text-center mb-4 font-medium">관련 사이트 바로가기</h3>
             <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -175,7 +183,6 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
         <style is:global>
             .main-tab.active { color: #1e293b; border-color: #1e293b; }
             
-            /* 1. 알약 디자인 (강제 적용) */
             .filter-chip { 
                 display: inline-flex; 
                 align-items: center;
@@ -183,10 +190,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 padding: 8px 18px; 
                 font-size: 0.95rem; 
                 font-weight: 500; 
-                color: #4b5563; /* slate-600 */
+                color: #4b5563; 
                 background-color: white; 
                 border: 1px solid #d1d5db; 
-                border-radius: 9999px; /* 완전 둥근 모양 */
+                border-radius: 9999px; 
                 cursor: pointer; 
                 transition: all 0.2s; 
                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -197,7 +204,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 color: #1f2937;
             }
             .filter-chip.active { 
-                background-color: #2c3e50; /* 진한 남색 */
+                background-color: #2c3e50; 
                 color: white; 
                 border-color: #2c3e50; 
                 font-weight: 700; 
@@ -244,13 +251,13 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             const categories = ["전체", "자연", "문화유산", "국립공원시설", "정원", "기타"]; 
             const regions = ["전체", "구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
 
-            // 3. 더보기 기능 변수
+            // 더보기 기능 변수
             let limit = 10;
-            let currentFilteredItems = []; // 현재 조건에 맞는 아이템들
+            let currentFilteredItems = []; 
 
             // 초기 실행
             renderSubChips(categories, 'category');
-            filterAndPagination('all', '전체'); // 초기 로딩
+            filterAndPagination('all', '전체'); 
 
             // 이메일 복사
             window.copyEmail = function() {
@@ -262,7 +269,12 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             // 탭 전환
             mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    mainTabs.forEach(t => t.classList.remove('active'));
+                    // 링크 버튼(국가유산 검색)은 탭 로직에서 제외
+                    if(tab.tagName === 'A') return;
+
+                    mainTabs.forEach(t => {
+                        if(t.tagName !== 'A') t.classList.remove('active');
+                    });
                     tab.classList.add('active');
                     const mode = tab.getAttribute('data-mode');
                     
@@ -275,7 +287,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 });
             });
 
-            // 1. 칩 생성 (알약 디자인)
+            // 칩 생성
             function renderSubChips(items, type) {
                 subFilterContainer.innerHTML = '';
                 items.forEach(item => {
@@ -285,7 +297,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 
                     if(count > 0) {
                         const btn = document.createElement('button');
-                        btn.className = 'filter-chip'; // CSS 클래스 적용
+                        btn.className = 'filter-chip'; 
                         if(item === '전체') btn.classList.add('active');
                         btn.innerText = `${item} (${count})`;
                         
@@ -293,7 +305,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
                             btn.classList.add('active');
                             
-                            limit = 10; // 필터 변경 시 10개로 리셋
+                            limit = 10; 
                             if(item === '전체') filterAndPagination('all', '전체');
                             else filterAndPagination(type, item);
                         };
@@ -302,11 +314,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 });
             }
 
-            // 3. 필터링 + 페이지네이션 핵심 로직
+            // 필터링 + 페이지네이션
             function filterAndPagination(type, value) {
                 const keyword = searchInput.value.toLowerCase();
                 
-                // 1단계: 조건에 맞는 것만 골라내기
                 currentFilteredItems = spotItems.filter(item => {
                     const header = item.querySelector('.spot-header');
                     const title = header.getAttribute('data-title').toLowerCase();
@@ -318,23 +329,16 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                     return matchesSearch && matchesFilter;
                 });
 
-                // 2단계: 화면에 그리기 (Limit 만큼만)
                 updateDisplay();
             }
 
             function updateDisplay() {
-                // 일단 다 숨김
                 spotItems.forEach(item => item.style.display = 'none');
-
-                // 현재 필터링된 것 중 limit 개수만큼만 보이기
                 currentFilteredItems.slice(0, limit).forEach(item => {
                     item.style.display = 'block';
                 });
-
-                // 결과 없음 처리
                 noResult.style.display = currentFilteredItems.length === 0 ? 'block' : 'none';
 
-                // 더보기 버튼 처리
                 if (currentFilteredItems.length > limit) {
                     loadMoreBtn.style.display = 'inline-block';
                     const remain = currentFilteredItems.length - limit;
@@ -344,31 +348,26 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 }
             }
 
-            // 더보기 버튼 클릭
             loadMoreBtn.addEventListener('click', () => {
                 limit += 10;
                 updateDisplay();
             });
 
-            // 검색어 입력 시
             searchInput.addEventListener('input', () => {
-                // 현재 활성화된 탭과 필터 값을 유지한 채 재검색
                 const activeTab = document.querySelector('.main-tab.active');
                 const mode = activeTab.getAttribute('data-mode');
                 const activeChip = document.querySelector('.filter-chip.active');
                 
-                // 칩에서 텍스트만 추출 (ex: "자연 (11)" -> "자연")
                 let filterValue = '전체';
                 if (activeChip) {
                     filterValue = activeChip.innerText.split(' (')[0];
                 }
                 
-                limit = 10; // 검색 시 리셋
+                limit = 10; 
                 if (filterValue === '전체') filterAndPagination('all', '전체');
                 else filterAndPagination(mode, filterValue);
             });
 
-            // 아코디언 & 지도 토글
             document.querySelectorAll('.spot-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const detail = header.nextElementSibling;
@@ -378,7 +377,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 
             document.querySelectorAll('.map-toggle-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // 부모 클릭 방지
+                    e.stopPropagation(); 
                     const lat = parseFloat(btn.getAttribute('data-lat'));
                     const lng = parseFloat(btn.getAttribute('data-lng'));
                     const mapDiv = btn.nextElementSibling;
