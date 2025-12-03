@@ -175,14 +175,13 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
         </div>
 
         <!-- ✨ 푸터 복구 (문의하기 & 방문자 수) -->
-        <div class="footer">
-            이 사이트는 국가유산청(<a href="https://www.khs.go.kr" target="_blank">https://www.khs.go.kr</a>)의 오픈API를 이용해서 만들었습니다.<br>
-            - Made by 이태건 -<br>
-            <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
-            <div class="hits-badge">
-                <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fexam1-beige.vercel.app&countColor=%232C3E50&style=flat" />
-            </div>
+<div class="footer">
+        - Made by 이태건 -<br>
+        <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
+        <div class="hits-badge">
+            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fexam1-beige.vercel.app&countColor=%232C3E50&style=flat" />
         </div>
+    </div>
 
         <style is:global>
             .main-tab.active { color: #1e293b; border-color: #1e293b; }
