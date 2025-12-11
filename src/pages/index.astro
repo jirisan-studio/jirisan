@@ -1,27 +1,49 @@
 ---
+// ------------------------------------------------------------------
+// [1. 서버 사이드 로직] (빠져있던 부분)
+// 마크다운 데이터를 불러오고 가공하는 "두뇌" 역할을 합니다.
+// ------------------------------------------------------------------
 import { getCollection } from 'astro:content';
+
+// Tailwind CSS 파일 연결 (Tailwind v4 사용 시 필수)
+// 만약 styles 폴더가 없다면 이 줄은 지우셔도 되지만, 디자인이 깨지면 다시 넣어야 합니다.
 import '../styles/global.css'; 
 
-const allSpots = await getCollection('spots');
-// 초기 정렬: 거리순
-allSpots.sort((a, b) => a.data.distance - b.data.distance);
+// 1. 데이터 가져오기
+const rawSpots = await getCollection('spots');
 
-// 카운트 계산
-const categoryCounts = allSpots.reduce((acc, spot) => {
-    acc[spot.data.category] = (acc[spot.data.category] || 0) + 1;
-    return acc;
-}, {});
-const regionCounts = allSpots.reduce((acc, spot) => {
-    acc[spot.data.region] = (acc[spot.data.region] || 0) + 1;
-    return acc;
-}, {});
+// 2. 거리순 정렬 (기본)
+const sortedSpots = rawSpots.sort((a, b) => a.data.distance - b.data.distance);
 
-const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
-  const { Content } = await spot.render();
-  return { ...spot, Content };
-}));
+// 3. 마크다운 본문 변환 (<spot.Content /> 사용을 위해 필요)
+const renderedSpots = await Promise.all(
+  sortedSpots.map(async (spot) => {
+    const { Content } = await spot.render();
+    return {
+      ...spot,
+      Content, 
+    };
+  })
+);
+
+// 4. 필터 카운트 계산 (자동)
+const categoryCounts: Record<string, number> = {};
+const regionCounts: Record<string, number> = {};
+
+renderedSpots.forEach((spot) => {
+  const { category, region } = spot.data;
+  if (category) categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+  if (region) regionCounts[region] = (regionCounts[region] || 0) + 1;
+});
+
+// 전체 개수 변수 정의
+const allSpots = renderedSpots;
+const allSpotsLength = allSpots.length;
 ---
 
+<!-- ------------------------------------------------------------------ -->
+<!-- [2. 클라이언트 사이드 UI] (보내주신 코드) -->
+<!-- ------------------------------------------------------------------ -->
 <html lang="ko">
 	<head>
 		<meta charset="utf-8" />
@@ -32,10 +54,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 	<body class="bg-slate-50 text-slate-800 font-sans">
         
 		<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-            <div class="max-w-3xl mx-auto px-4 py-4 flex flex-col items-center justify-center">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">🔎</span>
-			        <h1 class="text-xl font-bold text-slate-800 tracking-tight cursor-pointer" onclick="location.reload()">
+            <div class="max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-3xl">🔎</span>
+			        <h1 class="text-2xl font-bold text-slate-800 tracking-tight cursor-pointer" onclick="location.reload()">
                         지리산생태탐방원 인근 관광지 안내
                     </h1>
                 </div>
@@ -45,56 +67,29 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 
         <main class="max-w-3xl mx-auto p-4 pb-20">
             
-            <!-- 3단 탭 메뉴 -->
-            <div class="mode-tabs flex border-b border-slate-200 mb-6">
-                <button class="mode-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" onclick="switchMode('name')">
-                    이름으로 찾기
-                </button>
-                <button class="mode-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" onclick="switchMode('region')">
-                    지역으로 찾기
-                </button>
-                <button class="mode-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" onclick="switchMode('nearby')">
-                    📍 내 근처 찾기
-                </button>
+            <!-- 통합 검색창 -->
+            <div class="relative mb-8 mt-2">
+                <input type="text" id="searchInput" placeholder="관광지 이름 검색 (예: 화엄사, 노고단)" 
+                    class="w-full p-3.5 pl-11 bg-white border border-slate-300 rounded-xl text-base focus:outline-none focus:border-slate-600 focus:ring-1 focus:ring-slate-600 transition-all shadow-sm">
+                <span class="absolute left-4 top-4 text-slate-400 text-lg">🔍</span>
             </div>
+            
+            <!-- 안내 문구 -->
+            <p class="text-xs text-slate-500 text-center mb-6">
+                💡 관광지 이름을 클릭하시면 자세한 내용을 보실 수 있어요
+            </p>
 
-            <!-- 1. 이름 검색창 -->
-            <div id="search-name" class="search-container active mb-6">
-                <div class="relative">
-                    <input type="text" id="searchInput" placeholder="관광지 이름 검색 (예: 화엄사, 노고단)" 
-                        class="w-full p-3.5 pl-11 bg-white border border-slate-300 rounded-xl text-base focus:outline-none focus:border-slate-600 focus:ring-1 focus:ring-slate-600 transition-all shadow-sm">
-                    <span class="absolute left-4 top-4 text-slate-400 text-lg">🔍</span>
-                </div>
-                <p class="text-xs text-slate-500 text-center mt-2">
-                    💡 관광지 이름을 클릭하시면 자세한 내용을 보실 수 있어요
-                </p>
-            </div>
-
-            <!-- 2. 지역 검색 -->
-            <div id="search-region" class="search-container hidden mb-6">
-                <div id="region-main-scroll" class="flex flex-wrap gap-2 justify-center mb-4"></div>
-                <div id="sub-region-area" class="hidden bg-slate-100 p-4 rounded-xl text-center">
-                    <span class="block text-sm font-bold text-slate-600 mb-2">▼ 상세 지역 선택</span>
-                    <div id="region-sub-scroll" class="flex flex-wrap gap-2 justify-center"></div>
-                </div>
-            </div>
-
-            <!-- 3. 내 근처 찾기 -->
-            <div id="search-nearby" class="search-container hidden mb-6 text-center">
-                <p class="text-sm text-slate-500 mb-4">현재 위치를 확인하여 가까운 순서대로 정렬합니다.</p>
-                <button onclick="sortByLocation()" id="gpsBtn" class="px-6 py-3 bg-green-600 text-white rounded-full font-bold shadow-md hover:bg-green-700 transition">
-                    📡 내 위치 확인하고 검색하기
-                </button>
-            </div>
-
-            <!-- 필터 탭 -->
+            <!-- 탭 메뉴 -->
             <div class="flex border-b border-slate-200 mb-6">
-                <button class="filter-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="category">
-                    📏 거리순 ({allSpots.length})
+                <button class="main-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="category">
+                    📏 거리순 ({allSpotsLength})
                 </button>
-                <button class="filter-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="region">
+                <button class="main-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="region">
                     📍 지자체별
                 </button>
+                <a href="https://heritagekorea.vercel.app/" target="_blank" class="flex-1 py-3 text-sm font-bold text-green-600 border-b-2 border-transparent hover:text-green-800 hover:bg-slate-50 transition-colors text-center flex items-center justify-center gap-1">
+                    🏛️ 국가유산 검색 <span class="text-xs">↗</span>
+                </a>
             </div>
 
             <!-- 하위 필터 -->
@@ -103,16 +98,14 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             <!-- 리스트 영역 -->
             <div id="spot-list" class="space-y-3">
                 {renderedSpots.map((spot) => (
-                    <div class="spot-item group"
-                        data-title={spot.data.title}
-                        data-category={spot.data.category}
-                        data-region={spot.data.region}
-                        data-distance={spot.data.distance}
-                        data-lat={spot.data.lat} 
-                        data-lng={spot.data.lng}
-                    >
+                    <div class="spot-item group">
                         <!-- 카드 헤더 -->
-                        <div class="spot-header bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all flex justify-between items-center">
+                        <div class="spot-header bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all flex justify-between items-center"
+                            data-title={spot.data.title}
+                            data-category={spot.data.category}
+                            data-region={spot.data.region}
+                            data-distance={spot.data.distance}
+                        >
                             <div class="flex items-center gap-3">
                                 <div class="flex flex-col gap-1 items-start">
                                     <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 font-bold">{spot.data.region}</span>
@@ -126,7 +119,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                             </div>
                             
                             <div class="text-right min-w-[80px]">
-                                <div class="text-base font-bold text-green-700 distance-text">{spot.data.distance}km</div>
+                                <div class="text-base font-bold text-green-700">{spot.data.distance}km</div>
                                 <div class="text-xs text-slate-400 font-medium">({spot.data.time})</div>
                             </div>
                         </div>
@@ -134,9 +127,11 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                         <!-- 상세 내용 -->
                         <div class="detail-area hidden bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-5 animate-fade-in">
                              
-                            <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
-                                <span class="shrink-0">📍</span> <span class="font-medium">{spot.data.address}</span>
-                            </p>
+                            {spot.data.address && (
+                                <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
+                                    <span class="shrink-0">📍</span> <span class="font-medium">{spot.data.address}</span>
+                                </p>
+                            )}
 
                             <div class="prose prose-sm max-w-none mb-6 text-slate-700 leading-relaxed bg-white p-4 rounded-lg border border-slate-100">
                                 <spot.Content />
@@ -144,8 +139,8 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 
                             <div class="mb-5">
                                 <button class="w-full py-3 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition shadow-sm map-toggle-btn"
-                                    data-lat={spot.data.lat} 
-                                    data-lng={spot.data.lng}
+                                    data-lat={spot.data.lat || 0} 
+                                    data-lng={spot.data.lng || 0}
                                     id={`btn-map-${spot.slug}`}
                                 >
                                     🗺️ 지도 보기
@@ -160,7 +155,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                                 <a href={`https://www.youtube.com/results?search_query=${spot.data.region} ${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-400 transition shadow-sm">
                                     📺 유튜브
                                 </a>
-                                <a href={`https://heritagekorea.vercel.app/?q=${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-slate-700 text-white rounded-lg text-center text-sm font-bold shadow-sm hover:bg-slate-800 transition border border-slate-700">
+                                <a href={`https://exam1-beige.vercel.app/?q=${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-slate-700 text-white rounded-lg text-center text-sm font-bold shadow-sm hover:bg-slate-800 transition border border-slate-700">
                                     🏛️ 국가유산
                                 </a>
                             </div>
@@ -203,6 +198,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             </div>
         </div>
 
+        <!-- 푸터 -->
         <div class="footer">
             - Made by 이태건 -<br>
             <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
@@ -212,21 +208,36 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
         </div>
 
         <style is:global>
-            .mode-tab.active { color: #1e293b; border-color: #1e293b; }
-            .filter-tab.active { color: #1e293b; border-color: #1e293b; }
+            .main-tab.active { color: #1e293b; border-color: #1e293b; }
             
-            /* 알약 디자인 */
             .filter-chip { 
-                display: inline-flex; align-items: center; justify-content: center;
-                padding: 8px 18px; font-size: 0.95rem; font-weight: 500; 
-                color: #4b5563; background-color: white; border: 1px solid #d1d5db; 
-                border-radius: 9999px; cursor: pointer; transition: all 0.2s; 
+                display: inline-flex; 
+                align-items: center;
+                justify-content: center;
+                padding: 8px 18px; 
+                font-size: 0.95rem; 
+                font-weight: 500; 
+                color: #4b5563; 
+                background-color: white; 
+                border: 1px solid #d1d5db; 
+                border-radius: 9999px; 
+                cursor: pointer; 
+                transition: all 0.2s; 
                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
-            .filter-chip:hover { background-color: #f3f4f6; border-color: #9ca3af; color: #1f2937; }
-            .filter-chip.active { background-color: #2c3e50; color: white; border-color: #2c3e50; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .filter-chip:hover { 
+                background-color: #f3f4f6; 
+                border-color: #9ca3af;
+                color: #1f2937;
+            }
+            .filter-chip.active { 
+                background-color: #2c3e50; 
+                color: white; 
+                border-color: #2c3e50; 
+                font-weight: 700; 
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            }
 
-            /* 카드형 링크 */
             .link-card {
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 background: white; border: 1px solid #e2e8f0; border-radius: 12px;
@@ -238,8 +249,11 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             .link-card:hover { transform: translateY(-3px); border-color: #2c3e50; color: #2c3e50; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
             .footer { text-align: center; margin-top: 20px; padding-top: 30px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.85em; line-height: 1.8; }
+            .footer a { color: #64748b; text-decoration: none; border-bottom: 1px dotted #94a3b8; }
+            
             .contact-link { display: inline-block; margin-top: 5px; cursor: pointer; color: #475569; font-weight: 600; transition: 0.2s; }
             .contact-link:hover { color: #2c3e50; text-decoration: underline; }
+            
             .hits-badge { margin-top: 15px; display: inline-block; opacity: 0.8; transition: opacity 0.2s; }
             .hits-badge:hover { opacity: 1; }
             .hits-badge img { height: 20px; vertical-align: middle; }
@@ -248,7 +262,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
         </style>
 
-        <script define:vars={{ categoryCounts, regionCounts, allSpotsLength: allSpots.length, myEmail: "naturekr@gmail.com" }}>
+        <script define:vars={{ categoryCounts, regionCounts, allSpotsLength, myEmail: "naturekr@gmail.com" }}>
             window.categoryCounts = categoryCounts;
             window.regionCounts = regionCounts;
             window.allSpotsLength = allSpotsLength;
@@ -256,33 +270,20 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
         </script>
 
         <script>
-            // DOM 요소
             const searchInput = document.getElementById('searchInput');
             const subFilterContainer = document.getElementById('sub-filter-container');
             const noResult = document.getElementById('no-result');
             const loadMoreBtn = document.getElementById('loadMoreBtn');
-            const spotItems = Array.from(document.querySelectorAll('.spot-item'));
-            const modeTabs = document.querySelectorAll('.mode-tab');
-            const filterTabs = document.querySelectorAll('.filter-tab');
+            
+            const spotItems = Array.from(document.querySelectorAll('.spot-item')); 
+            const mainTabs = document.querySelectorAll('.main-tab');
 
-            // 데이터 상수
             const categories = ["전체", "자연", "문화유산", "국립공원시설", "정원", "기타"]; 
             const regions = ["전체", "구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
-            const SUB_REGIONS = {
-                "구례": ["구례읍", "마산면", "광의면", "용방면", "산동면", "토지면", "간전면", "문척면"],
-                "하동": ["하동읍", "화개면", "악양면", "적량면", "횡천면", "고전면", "금남면", "금성면", "진교면", "양보면", "북천면", "청암면", "옥종면"],
-                "남원": ["남원시", "운봉읍", "주천면", "수지면", "송동면", "주생면", "금지면", "대강면", "대산면", "사매면", "덕과면", "보절면", "산동면", "이백면", "아영면", "산내면", "인월면"],
-                "순천": ["순천시", "승주읍", "해룡면", "서면", "황전면", "월등면", "주암면", "송광면", "외서면", "낙안면", "별량면", "상사면"],
-                "함양": ["함양읍", "마천면", "휴천면", "유림면", "수동면", "지곡면", "안의면", "서하면", "서상면", "백전면", "병곡면"],
-                "산청": ["산청읍", "차황면", "오부면", "생초면", "금서면", "삼장면", "시천면", "단성면", "신안면", "생비량면", "신등면"],
-                "곡성": ["곡성읍", "오곡면", "삼기면", "석곡면", "목사동면", "죽곡면", "고달면", "옥과면", "입면", "겸면", "오산면"]
-            };
 
-            // 상태 변수
+            // 더보기 기능 변수
             let limit = 10;
             let currentFilteredItems = []; 
-            let currentFilterType = 'category'; // 'category' or 'region'
-            let currentFilterValue = '전체';
 
             // 초기 실행
             renderSubChips(categories, 'category');
@@ -295,31 +296,15 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 });
             };
 
-            // 1. 검색 모드 전환 (이름/지역/내주변)
-            window.switchMode = (mode) => {
-                document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.search-container').forEach(c => c.classList.remove('active'));
-                
-                if(mode === 'name') {
-                    document.querySelectorAll('.mode-tab')[0].classList.add('active');
-                    document.getElementById('search-name').classList.add('active');
-                    // 이름 검색 모드에서는 필터 탭 보이기
-                    document.querySelector('.filter-tab[data-mode="category"]').click();
-                } else if(mode === 'region') {
-                    document.querySelectorAll('.mode-tab')[1].classList.add('active');
-                    document.getElementById('search-region').classList.add('active');
-                    // 지역 검색 모드에서는 '지자체별' 필터 자동 선택
-                    document.querySelector('.filter-tab[data-mode="region"]').click();
-                } else if(mode === 'nearby') {
-                    document.querySelectorAll('.mode-tab')[2].classList.add('active');
-                    document.getElementById('search-nearby').classList.add('active');
-                }
-            };
-
-            // 2. 필터 탭 전환 (거리순/지자체별)
-            filterTabs.forEach(tab => {
+            // 탭 전환
+            mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    filterTabs.forEach(t => t.classList.remove('active'));
+                    // 링크 버튼 예외 처리
+                    if(tab.tagName === 'A') return;
+
+                    mainTabs.forEach(t => {
+                        if(t.tagName !== 'A') t.classList.remove('active');
+                    });
                     tab.classList.add('active');
                     const mode = tab.getAttribute('data-mode');
                     
@@ -327,12 +312,12 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                     else if (mode === 'region') renderSubChips(regions, 'region');
                     
                     // 탭 변경 시 전체 보기로 리셋
-                    limit = 10;
-                    filterAndPagination('all', '전체');
+                    const allBtn = subFilterContainer.querySelector('button');
+                    if(allBtn) allBtn.click();
                 });
             });
 
-            // 3. 칩 생성 (알약 디자인)
+            // 칩 생성
             function renderSubChips(items, type) {
                 subFilterContainer.innerHTML = '';
                 items.forEach(item => {
@@ -340,7 +325,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                     if (item === '전체') count = window.allSpotsLength;
                     else count = (type === 'category' ? window.categoryCounts[item] : window.regionCounts[item]) || 0;
 
-                    if(count > 0 || item === '전체') {
+                    if(count > 0) {
                         const btn = document.createElement('button');
                         btn.className = 'filter-chip'; 
                         if(item === '전체') btn.classList.add('active');
@@ -351,9 +336,6 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                             btn.classList.add('active');
                             
                             limit = 10; 
-                            currentFilterType = type;
-                            currentFilterValue = item;
-                            
                             if(item === '전체') filterAndPagination('all', '전체');
                             else filterAndPagination(type, item);
                         };
@@ -362,54 +344,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 });
             }
 
-            // 4. 지역으로 찾기 (상세 지역 칩 생성)
-            const regionMainScroll = document.getElementById('region-main-scroll');
-            if(regionMainScroll) {
-                let html = "";
-                regions.forEach(r => {
-                    if(r !== '전체') html += `<button class="chip-btn" onclick="selectMainRegion('${r}', this)">${r}</button>`;
-                });
-                regionMainScroll.innerHTML = html;
-            }
-
-            window.selectMainRegion = (regionName, btn) => {
-                document.querySelectorAll('#region-main-scroll .chip-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                const subArea = document.getElementById('sub-region-area');
-                const subScroll = document.getElementById('region-sub-scroll');
-                const subList = SUB_REGIONS[regionName];
-
-                if (!subList || subList.length === 0) {
-                    subArea.style.display = 'none';
-                } else {
-                    subArea.style.display = 'block';
-                    let html = `<button class="chip-btn active" onclick="filterAndPagination('region', '${regionName}')">전체</button>`;
-                    subList.forEach(sub => {
-                        // 상세 지역 필터링은 주소(address)에 해당 텍스트가 포함되는지로 판단
-                        html += `<button class="chip-btn" onclick="filterByAddress('${sub}', this)">${sub}</button>`;
-                    });
-                    subScroll.innerHTML = html;
-                }
-                
-                // 상위 지역 선택 시 해당 지역 필터링 실행
-                limit = 10;
-                filterAndPagination('region', regionName);
-            };
-
-            window.filterByAddress = (subRegion, btn) => {
-                document.querySelectorAll('#region-sub-scroll .chip-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const keyword = subRegion;
-                currentFilteredItems = spotItems.filter(item => {
-                    const address = item.querySelector('.text-sm.text-slate-500').innerText; // 주소 텍스트 추출
-                    return address.includes(keyword);
-                });
-                updateDisplay();
-            };
-
-            // 5. 필터링 + 페이지네이션 핵심 로직
+            // 필터링 + 페이지네이션
             function filterAndPagination(type, value) {
                 const keyword = searchInput.value.toLowerCase();
                 
@@ -443,82 +378,26 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 }
             }
 
-            // 더보기 버튼
             loadMoreBtn.addEventListener('click', () => {
                 limit += 10;
                 updateDisplay();
             });
 
-            // 검색 기능
-            window.searchByName = () => {
-                const keyword = searchInput.value.toLowerCase();
-                limit = 10;
-                // 검색 시에는 전체 필터에서 검색
-                currentFilteredItems = spotItems.filter(item => {
-                    const title = item.querySelector('.spot-header').getAttribute('data-title').toLowerCase();
-                    return title.includes(keyword);
-                });
-                updateDisplay();
-            };
+            searchInput.addEventListener('input', () => {
+                const activeTab = document.querySelector('.main-tab.active');
+                const mode = activeTab.getAttribute('data-mode');
+                const activeChip = document.querySelector('.filter-chip.active');
+                
+                let filterValue = '전체';
+                if (activeChip) {
+                    filterValue = activeChip.innerText.split(' (')[0];
+                }
+                
+                limit = 10; 
+                if (filterValue === '전체') filterAndPagination('all', '전체');
+                else filterAndPagination(mode, filterValue);
+            });
 
-            searchInput.addEventListener('input', searchByName);
-
-            // 내 주변 찾기
-            window.sortByLocation = () => {
-                const btn = document.getElementById('gpsBtn');
-                btn.innerText = "📡 위치 확인 중...";
-
-                if (!navigator.geolocation) { alert("위치 정보를 지원하지 않습니다."); return; }
-
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const myLat = position.coords.latitude;
-                    const myLng = position.coords.longitude;
-
-                    // 현재 필터링된 아이템(또는 전체)을 거리순 정렬
-                    if(currentFilteredItems.length === 0) currentFilteredItems = [...spotItems];
-
-                    currentFilteredItems.forEach(item => {
-                        const lat = parseFloat(item.getAttribute('data-lat'));
-                        const lng = parseFloat(item.getAttribute('data-lng'));
-                        if (lat && lng) {
-                            const dist = getDistance(myLat, myLng, lat, lng);
-                            // 거리 텍스트 업데이트 (선택 사항)
-                            // item.querySelector('.distance-text').innerText = dist.toFixed(1) + 'km';
-                            item.setAttribute('data-real-distance', dist); // 정렬용 속성 추가
-                        } else {
-                            item.setAttribute('data-real-distance', 99999);
-                        }
-                    });
-
-                    currentFilteredItems.sort((a, b) => {
-                        return parseFloat(a.getAttribute('data-real-distance')) - parseFloat(b.getAttribute('data-real-distance'));
-                    });
-
-                    // DOM 재배치
-                    const container = document.getElementById('spot-list');
-                    container.innerHTML = '';
-                    currentFilteredItems.forEach(item => container.appendChild(item));
-                    
-                    limit = 10;
-                    updateDisplay();
-                    btn.innerText = "✅ 거리순 정렬 완료";
-                }, () => {
-                    alert("위치 정보를 가져올 수 없습니다.");
-                    btn.innerText = "📍 내 주변 순으로 정렬하기";
-                });
-            };
-
-            function getDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371; 
-                const dLat = deg2rad(lat2 - lat1);
-                const dLon = deg2rad(lon2 - lon1);
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-                return R * c;
-            }
-            function deg2rad(deg) { return deg * (Math.PI/180); }
-
-            // 아코디언 & 지도 토글
             document.querySelectorAll('.spot-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const detail = header.nextElementSibling;
@@ -542,6 +421,12 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                                 mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">지도 API 로딩 실패 (localhost 등록 확인 필요)</div>';
                                 return;
                             }
+                            // 좌표가 0이거나 없을 경우 예외처리
+                            if(!lat || !lng) {
+                                mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">좌표 정보가 없습니다.</div>';
+                                return;
+                            }
+
                             const map = new naver.maps.Map(mapDiv, {
                                 center: new naver.maps.LatLng(lat, lng),
                                 zoom: 14
