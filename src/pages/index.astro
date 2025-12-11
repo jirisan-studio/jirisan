@@ -32,10 +32,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 	<body class="bg-slate-50 text-slate-800 font-sans">
         
 		<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-            <div class="max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-3xl">🔎</span>
-			        <h1 class="text-2xl font-bold text-slate-800 tracking-tight cursor-pointer" onclick="location.reload()">
+            <div class="max-w-3xl mx-auto px-4 py-4 flex flex-col items-center justify-center">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">🔎</span>
+			        <h1 class="text-xl font-bold text-slate-800 tracking-tight cursor-pointer" onclick="location.reload()">
                         지리산생태탐방원 인근 관광지 안내
                     </h1>
                 </div>
@@ -70,20 +70,20 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 </a>
             </div>
 
-            <!-- 하위 필터 -->
+            <!-- 하위 필터 (알약 디자인) -->
             <div id="sub-filter-container" class="mb-8 flex flex-wrap gap-2 justify-center"></div>
 
             <!-- 리스트 영역 -->
             <div id="spot-list" class="space-y-3">
                 {renderedSpots.map((spot) => (
-                    <div class="spot-item group">
+                    <div class="spot-item group"
+                        data-title={spot.data.title}
+                        data-category={spot.data.category}
+                        data-region={spot.data.region}
+                        data-distance={spot.data.distance}
+                    >
                         <!-- 카드 헤더 -->
-                        <div class="spot-header bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all flex justify-between items-center"
-                            data-title={spot.data.title}
-                            data-category={spot.data.category}
-                            data-region={spot.data.region}
-                            data-distance={spot.data.distance}
-                        >
+                        <div class="spot-header bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all flex justify-between items-center">
                             <div class="flex items-center gap-3">
                                 <div class="flex flex-col gap-1 items-start">
                                     <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 font-bold">{spot.data.region}</span>
@@ -102,7 +102,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                             </div>
                         </div>
 
-                        <!-- 상세 내용 -->
+                        <!-- 상세 내용 (아코디언) -->
                         <div class="detail-area hidden bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-5 animate-fade-in">
                              
                             <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
@@ -113,303 +113,4 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                                 <spot.Content />
                             </div>
 
-                            <div class="mb-5">
-                                <button class="w-full py-3 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition shadow-sm map-toggle-btn"
-                                    data-lat={spot.data.lat} 
-                                    data-lng={spot.data.lng}
-                                    id={`btn-map-${spot.slug}`}
-                                >
-                                    🗺️ 지도 보기
-                                </button>
-                                <div id={`map-${spot.slug}`} class="w-full h-72 bg-slate-200 rounded-lg mt-2 hidden relative overflow-hidden border border-slate-300"></div>
-                            </div>
-
-                            <div class="flex gap-2">
-                                <a href={`https://www.google.com/search?q=${spot.data.region} ${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-400 transition shadow-sm">
-                                    G 구글
-                                </a>
-                                <a href={`https://www.youtube.com/results?search_query=${spot.data.region} ${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-400 transition shadow-sm">
-                                    📺 유튜브
-                                </a>
-                                <a href={`https://exam1-beige.vercel.app/?q=${spot.data.title}`} target="_blank" class="flex-1 py-3 bg-slate-700 text-white rounded-lg text-center text-sm font-bold shadow-sm hover:bg-slate-800 transition border border-slate-700">
-                                    🏛️ 국가유산
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div id="no-result" class="hidden text-center py-20">
-                <span class="text-4xl mb-2 block">🤔</span>
-                <span class="text-slate-400 font-medium">검색 결과가 없습니다.</span>
-            </div>
-            
-            <div class="text-center mt-8">
-                <button id="loadMoreBtn" class="hidden px-8 py-3 bg-white border border-slate-300 rounded-full text-slate-600 font-bold shadow-sm hover:bg-slate-50 transition text-sm">
-                    결과 더보기 +
-                </button>
-            </div>
-        </main>
-
-        <!-- 관련 사이트 링크 -->
-        <div class="related-section max-w-3xl mx-auto px-4 mb-10">
-            <h3 class="text-sm text-slate-400 text-center mb-4 font-medium">관련 사이트 바로가기</h3>
-            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                <a href="https://www.youtube.com/channel/UCWJHLijeKNpQpFq_bn63TKw" target="_blank" class="link-card">
-                    <span class="text-xl mb-1">📺</span><span>생태탐방원<br>유튜브</span>
-                </a>
-                <a href="https://www.facebook.com/jirisan.NC/" target="_blank" class="link-card">
-                    <span class="text-xl mb-1">📘</span><span>페이스북</span>
-                </a>
-                <a href="https://www.instagram.com/jirisan_naturecenter/" target="_blank" class="link-card">
-                    <span class="text-xl mb-1">📷</span><span>인스타그램</span>
-                </a>
-                <a href="https://reservation.knps.or.kr/" target="_blank" class="link-card">
-                    <span class="text-xl mb-1">📅</span><span>국립공원<br>예약</span>
-                </a>
-                <a href="https://www.knps.or.kr/front/portal/safe/acsCtrList.do?menuNo=8000340" target="_blank" class="link-card">
-                    <span class="text-xl mb-1">🚧</span><span>탐방로<br>통제정보</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- ✨ 푸터 복구 (문의하기 & 방문자 수) -->
-<div class="footer">
-        - Made by 이태건 -<br>
-        <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
-        <div class="hits-badge">
-            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fexam1-beige.vercel.app&countColor=%232C3E50&style=flat" />
-        </div>
-    </div>
-
-        <style is:global>
-            .main-tab.active { color: #1e293b; border-color: #1e293b; }
-            
-            .filter-chip { 
-                display: inline-flex; 
-                align-items: center;
-                justify-content: center;
-                padding: 8px 18px; 
-                font-size: 0.95rem; 
-                font-weight: 500; 
-                color: #4b5563; 
-                background-color: white; 
-                border: 1px solid #d1d5db; 
-                border-radius: 9999px; 
-                cursor: pointer; 
-                transition: all 0.2s; 
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            }
-            .filter-chip:hover { 
-                background-color: #f3f4f6; 
-                border-color: #9ca3af;
-                color: #1f2937;
-            }
-            .filter-chip.active { 
-                background-color: #2c3e50; 
-                color: white; 
-                border-color: #2c3e50; 
-                font-weight: 700; 
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-            }
-
-            .link-card {
-                display: flex; flex-direction: column; align-items: center; justify-content: center;
-                background: white; border: 1px solid #e2e8f0; border-radius: 12px;
-                padding: 12px 5px; text-align: center; text-decoration: none;
-                color: #64748b; font-size: 0.8em; font-weight: 600;
-                transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-                height: 80px;
-            }
-            .link-card:hover { transform: translateY(-3px); border-color: #2c3e50; color: #2c3e50; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-
-            /* 푸터 스타일 */
-            .footer { text-align: center; margin-top: 20px; padding-top: 30px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.85em; line-height: 1.8; }
-            .footer a { color: #64748b; text-decoration: none; border-bottom: 1px dotted #94a3b8; }
-            
-            .contact-link { display: inline-block; margin-top: 5px; cursor: pointer; color: #475569; font-weight: 600; transition: 0.2s; }
-            .contact-link:hover { color: #2c3e50; text-decoration: underline; }
-            
-            .hits-badge { margin-top: 15px; display: inline-block; opacity: 0.8; transition: opacity 0.2s; }
-            .hits-badge:hover { opacity: 1; }
-            .hits-badge img { height: 20px; vertical-align: middle; }
-
-            @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-            .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
-        </style>
-
-        <script define:vars={{ categoryCounts, regionCounts, allSpotsLength: allSpots.length, myEmail: "naturekr@gmail.com" }}>
-            window.categoryCounts = categoryCounts;
-            window.regionCounts = regionCounts;
-            window.allSpotsLength = allSpotsLength;
-            window.myEmail = myEmail;
-        </script>
-
-        <script>
-            const searchInput = document.getElementById('searchInput');
-            const subFilterContainer = document.getElementById('sub-filter-container');
-            const noResult = document.getElementById('no-result');
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            
-            const spotItems = Array.from(document.querySelectorAll('.spot-item')); // 배열로 변환
-            const mainTabs = document.querySelectorAll('.main-tab');
-
-            const categories = ["전체", "자연", "문화유산", "국립공원시설", "정원", "기타"]; 
-            const regions = ["전체", "구례", "하동", "남원", "순천", "함양", "산청", "곡성"]; 
-
-            // 더보기 기능 변수
-            let limit = 10;
-            let currentFilteredItems = []; 
-
-            // 초기 실행
-            renderSubChips(categories, 'category');
-            filterAndPagination('all', '전체'); 
-
-            // 이메일 복사
-            window.copyEmail = function() {
-                navigator.clipboard.writeText(window.myEmail).then(() => {
-                    alert(`📧 이메일 주소가 복사되었습니다!\n(${window.myEmail})`);
-                });
-            };
-
-            // 탭 전환
-            mainTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // 링크 버튼(국가유산 검색)은 탭 로직에서 제외
-                    if(tab.tagName === 'A') return;
-
-                    mainTabs.forEach(t => {
-                        if(t.tagName !== 'A') t.classList.remove('active');
-                    });
-                    tab.classList.add('active');
-                    const mode = tab.getAttribute('data-mode');
-                    
-                    if (mode === 'category') renderSubChips(categories, 'category');
-                    else if (mode === 'region') renderSubChips(regions, 'region');
-                    
-                    // 탭 변경 시 전체 보기로 리셋
-                    const allBtn = subFilterContainer.querySelector('button');
-                    if(allBtn) allBtn.click();
-                });
-            });
-
-            // 칩 생성
-            function renderSubChips(items, type) {
-                subFilterContainer.innerHTML = '';
-                items.forEach(item => {
-                    let count = 0;
-                    if (item === '전체') count = window.allSpotsLength;
-                    else count = (type === 'category' ? window.categoryCounts[item] : window.regionCounts[item]) || 0;
-
-                    if(count > 0) {
-                        const btn = document.createElement('button');
-                        btn.className = 'filter-chip'; 
-                        if(item === '전체') btn.classList.add('active');
-                        btn.innerText = `${item} (${count})`;
-                        
-                        btn.onclick = () => {
-                            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                            btn.classList.add('active');
-                            
-                            limit = 10; 
-                            if(item === '전체') filterAndPagination('all', '전체');
-                            else filterAndPagination(type, item);
-                        };
-                        subFilterContainer.appendChild(btn);
-                    }
-                });
-            }
-
-            // 필터링 + 페이지네이션
-            function filterAndPagination(type, value) {
-                const keyword = searchInput.value.toLowerCase();
-                
-                currentFilteredItems = spotItems.filter(item => {
-                    const header = item.querySelector('.spot-header');
-                    const title = header.getAttribute('data-title').toLowerCase();
-                    const cardValue = header.getAttribute(`data-${type}`);
-                    
-                    const matchesSearch = title.includes(keyword);
-                    const matchesFilter = (value === '전체') || (cardValue === value);
-                    
-                    return matchesSearch && matchesFilter;
-                });
-
-                updateDisplay();
-            }
-
-            function updateDisplay() {
-                spotItems.forEach(item => item.style.display = 'none');
-                currentFilteredItems.slice(0, limit).forEach(item => {
-                    item.style.display = 'block';
-                });
-                noResult.style.display = currentFilteredItems.length === 0 ? 'block' : 'none';
-
-                if (currentFilteredItems.length > limit) {
-                    loadMoreBtn.style.display = 'inline-block';
-                    const remain = currentFilteredItems.length - limit;
-                    loadMoreBtn.innerText = `결과 더보기 + (${remain}개 남음)`;
-                } else {
-                    loadMoreBtn.style.display = 'none';
-                }
-            }
-
-            loadMoreBtn.addEventListener('click', () => {
-                limit += 10;
-                updateDisplay();
-            });
-
-            searchInput.addEventListener('input', () => {
-                const activeTab = document.querySelector('.main-tab.active');
-                const mode = activeTab.getAttribute('data-mode');
-                const activeChip = document.querySelector('.filter-chip.active');
-                
-                let filterValue = '전체';
-                if (activeChip) {
-                    filterValue = activeChip.innerText.split(' (')[0];
-                }
-                
-                limit = 10; 
-                if (filterValue === '전체') filterAndPagination('all', '전체');
-                else filterAndPagination(mode, filterValue);
-            });
-
-            document.querySelectorAll('.spot-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const detail = header.nextElementSibling;
-                    detail.classList.toggle('hidden');
-                });
-            });
-
-            document.querySelectorAll('.map-toggle-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    const lat = parseFloat(btn.getAttribute('data-lat'));
-                    const lng = parseFloat(btn.getAttribute('data-lng'));
-                    const mapDiv = btn.nextElementSibling;
-                    
-                    if(mapDiv.classList.contains('hidden')) {
-                        mapDiv.classList.remove('hidden');
-                        btn.innerText = "🗺️ 지도 닫기";
-                        
-                        if(!mapDiv.hasChildNodes()) {
-                            if(typeof naver === "undefined") {
-                                mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">지도 API 로딩 실패 (localhost 등록 확인 필요)</div>';
-                                return;
-                            }
-                            const map = new naver.maps.Map(mapDiv, {
-                                center: new naver.maps.LatLng(lat, lng),
-                                zoom: 14
-                            });
-                            new naver.maps.Marker({ position: new naver.maps.LatLng(lat, lng), map: map });
-                        }
-                    } else {
-                        mapDiv.classList.add('hidden');
-                        btn.innerText = "🗺️ 지도 보기";
-                    }
-                });
-            });
-        </script>
-	</body>
-</html>
+                            <div cla
