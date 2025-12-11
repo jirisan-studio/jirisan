@@ -1,9 +1,13 @@
 ---
-// ------------------------------------------------------------------
-// [서버 사이드 로직] 
-// 이곳은 브라우저가 아닌 서버(빌드 시점)에서 실행됩니다.
-// 마크다운 파일을 불러와서 데이터를 가공하는 역할을 합니다.
-// ------------------------------------------------------------------
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+import '../styles/global.css';  // 👈 이 줄을 꼭 추가해야 합니다!
+
+// ... (나머지 코드는 그대로 둡니다)
+const rawSpots = await getCollection('spots');
+// ...
+---
 import { getCollection } from 'astro:content';
 
 // 1. 'spots' 폴더의 모든 마크다운 파일 가져오기
