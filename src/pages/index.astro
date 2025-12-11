@@ -1,32 +1,53 @@
 ---
+// ------------------------------------------------------------------
+// [서버 사이드 로직] 
+// 이곳은 브라우저가 아닌 서버(빌드 시점)에서 실행됩니다.
+// 마크다운 파일을 불러와서 데이터를 가공하는 역할을 합니다.
+// ------------------------------------------------------------------
 import { getCollection } from 'astro:content';
-import '../styles/global.css'; 
 
-const allSpots = await getCollection('spots');
-// 초기 정렬: 거리순
-allSpots.sort((a, b) => a.data.distance - b.data.distance);
+// 1. 'spots' 폴더의 모든 마크다운 파일 가져오기
+const rawSpots = await getCollection('spots');
 
-// 카운트 계산
-const categoryCounts = allSpots.reduce((acc, spot) => {
-    acc[spot.data.category] = (acc[spot.data.category] || 0) + 1;
-    return acc;
-}, {});
-const regionCounts = allSpots.reduce((acc, spot) => {
-    acc[spot.data.region] = (acc[spot.data.region] || 0) + 1;
-    return acc;
-}, {});
+// 2. 거리(distance) 기준으로 오름차순 정렬 (가까운 순)
+const sortedSpots = rawSpots.sort((a, b) => a.data.distance - b.data.distance);
 
-const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
-  const { Content } = await spot.render();
-  return { ...spot, Content };
-}));
+// 3. 마크다운 본문 내용을 HTML로 변환하기 (.render() 함수 사용)
+const renderedSpots = await Promise.all(
+  sortedSpots.map(async (spot) => {
+    const { Content } = await spot.render();
+    return {
+      ...spot,
+      Content, // 본문 컴포넌트 (<spot.Content />로 사용)
+    };
+  })
+);
+
+// 4. 필터 버튼에 표시할 개수 계산 (자동 계산)
+const categoryCounts: Record<string, number> = {};
+const regionCounts: Record<string, number> = {};
+
+renderedSpots.forEach((spot) => {
+  const { category, region } = spot.data;
+  if (category) categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+  if (region) regionCounts[region] = (regionCounts[region] || 0) + 1;
+});
+
+// 전체 개수
+const allSpotsLength = renderedSpots.length;
 ---
+
+<!-- ------------------------------------------------------------------ -->
+<!-- [클라이언트 사이드 UI] -->
+<!-- 여기서부터는 님께서 만드신 디자인과 기능이 적용된 HTML 영역입니다. -->
+<!-- ------------------------------------------------------------------ -->
 
 <html lang="ko">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<title>지리산생태탐방원 인근 관광지 안내</title>
+        <!-- 네이버 지도 API -->
         <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=an3gqg9xly"></script>
 	</head>
 	<body class="bg-slate-50 text-slate-800 font-sans">
@@ -57,10 +78,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 💡 관광지 이름을 클릭하시면 자세한 내용을 보실 수 있어요
             </p>
 
-            <!-- 탭 메뉴 -->
+            <!-- 탭 메뉴 (서버에서 계산된 전체 개수 allSpotsLength 사용) -->
             <div class="flex border-b border-slate-200 mb-6">
                 <button class="main-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="category">
-                    📏 거리순 ({allSpots.length})
+                    📏 거리순 ({allSpotsLength})
                 </button>
                 <button class="main-tab flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="region">
                     📍 지자체별
@@ -70,10 +91,10 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 </a>
             </div>
 
-            <!-- 하위 필터 -->
+            <!-- 하위 필터 (스크립트로 동적 생성됨) -->
             <div id="sub-filter-container" class="mb-8 flex flex-wrap gap-2 justify-center"></div>
 
-            <!-- 리스트 영역 -->
+            <!-- 리스트 영역 (Astro가 데이터를 기반으로 반복 생성) -->
             <div id="spot-list" class="space-y-3">
                 {renderedSpots.map((spot) => (
                     <div class="spot-item group">
@@ -105,18 +126,22 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                         <!-- 상세 내용 -->
                         <div class="detail-area hidden bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-5 animate-fade-in">
                              
-                            <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
-                                <span class="shrink-0">📍</span> <span class="font-medium">{spot.data.address}</span>
-                            </p>
+                            {/* 주소가 있을 때만 표시 */}
+                            {spot.data.address && (
+                                <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
+                                    <span class="shrink-0">📍</span> <span class="font-medium">{spot.data.address}</span>
+                                </p>
+                            )}
 
                             <div class="prose prose-sm max-w-none mb-6 text-slate-700 leading-relaxed bg-white p-4 rounded-lg border border-slate-100">
+                                <!-- 마크다운 파일의 본문 내용이 여기 들어갑니다 -->
                                 <spot.Content />
                             </div>
 
                             <div class="mb-5">
                                 <button class="w-full py-3 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition shadow-sm map-toggle-btn"
-                                    data-lat={spot.data.lat} 
-                                    data-lng={spot.data.lng}
+                                    data-lat={spot.data.lat || 0} 
+                                    data-lng={spot.data.lng || 0}
                                     id={`btn-map-${spot.slug}`}
                                 >
                                     🗺️ 지도 보기
@@ -140,11 +165,13 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 ))}
             </div>
 
+            <!-- 검색 결과 없음 -->
             <div id="no-result" class="hidden text-center py-20">
                 <span class="text-4xl mb-2 block">🤔</span>
                 <span class="text-slate-400 font-medium">검색 결과가 없습니다.</span>
             </div>
             
+            <!-- 더보기 버튼 -->
             <div class="text-center mt-8">
                 <button id="loadMoreBtn" class="hidden px-8 py-3 bg-white border border-slate-300 rounded-full text-slate-600 font-bold shadow-sm hover:bg-slate-50 transition text-sm">
                     결과 더보기 +
@@ -174,16 +201,17 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             </div>
         </div>
 
-        <!-- ✨ 푸터 복구 (문의하기 & 방문자 수) -->
-<div class="footer">
-        - Made by 이태건 -<br>
-        <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
-        <div class="hits-badge">
-            <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fexam1-beige.vercel.app&countColor=%232C3E50&style=flat" />
+        <!-- 푸터 -->
+        <div class="footer">
+            - Made by 이태건 -<br>
+            <span class="contact-link" onclick="copyEmail()">📩 문의하기 (Contact)</span><br>
+            <div class="hits-badge">
+                <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fexam1-beige.vercel.app&countColor=%232C3E50&style=flat" />
+            </div>
         </div>
-    </div>
 
         <style is:global>
+            /* 님께서 작성하신 CSS 스타일 그대로 유지 */
             .main-tab.active { color: #1e293b; border-color: #1e293b; }
             
             .filter-chip { 
@@ -224,7 +252,6 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             }
             .link-card:hover { transform: translateY(-3px); border-color: #2c3e50; color: #2c3e50; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-            /* 푸터 스타일 */
             .footer { text-align: center; margin-top: 20px; padding-top: 30px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.85em; line-height: 1.8; }
             .footer a { color: #64748b; text-decoration: none; border-bottom: 1px dotted #94a3b8; }
             
@@ -239,20 +266,22 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
         </style>
 
-        <script define:vars={{ categoryCounts, regionCounts, allSpotsLength: allSpots.length, myEmail: "naturekr@gmail.com" }}>
+        <!-- 서버에서 계산한 데이터(변수)를 클라이언트 스크립트로 전달 -->
+        <script define:vars={{ categoryCounts, regionCounts, allSpotsLength, myEmail: "naturekr@gmail.com" }}>
             window.categoryCounts = categoryCounts;
             window.regionCounts = regionCounts;
             window.allSpotsLength = allSpotsLength;
             window.myEmail = myEmail;
         </script>
 
+        <!-- 클라이언트 동작 스크립트 (탭, 검색, 지도 등) -->
         <script>
             const searchInput = document.getElementById('searchInput');
             const subFilterContainer = document.getElementById('sub-filter-container');
             const noResult = document.getElementById('no-result');
             const loadMoreBtn = document.getElementById('loadMoreBtn');
             
-            const spotItems = Array.from(document.querySelectorAll('.spot-item')); // 배열로 변환
+            const spotItems = Array.from(document.querySelectorAll('.spot-item')); 
             const mainTabs = document.querySelectorAll('.main-tab');
 
             const categories = ["전체", "자연", "문화유산", "국립공원시설", "정원", "기타"]; 
@@ -276,7 +305,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             // 탭 전환
             mainTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // 링크 버튼(국가유산 검색)은 탭 로직에서 제외
+                    // 링크 버튼 예외 처리
                     if(tab.tagName === 'A') return;
 
                     mainTabs.forEach(t => {
@@ -382,6 +411,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 });
             });
 
+            // 지도 토글 및 API 연동
             document.querySelectorAll('.map-toggle-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation(); 
@@ -398,6 +428,11 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                                 mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">지도 API 로딩 실패 (localhost 등록 확인 필요)</div>';
                                 return;
                             }
+                            if(!lat || !lng) {
+                                mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">좌표 정보가 없습니다.</div>';
+                                return;
+                            }
+
                             const map = new naver.maps.Map(mapDiv, {
                                 center: new naver.maps.LatLng(lat, lng),
                                 zoom: 14
