@@ -6,7 +6,7 @@ const allSpots = await getCollection('spots');
 // 초기 정렬: 거리순
 allSpots.sort((a, b) => a.data.distance - b.data.distance);
 
-// 카운트 계산 (서버 사이드)
+// 카운트 계산
 const categoryCounts = allSpots.reduce((acc, spot) => {
     acc[spot.data.category] = (acc[spot.data.category] || 0) + 1;
     return acc;
@@ -16,7 +16,6 @@ const regionCounts = allSpots.reduce((acc, spot) => {
     return acc;
 }, {});
 
-// 렌더링 최적화
 const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
   const { Content } = await spot.render();
   return { ...spot, Content };
@@ -46,7 +45,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
 
         <main class="max-w-3xl mx-auto p-4 pb-20">
             
-            <!-- 3단 탭 메뉴 (검색 모드) -->
+            <!-- 3단 탭 메뉴 -->
             <div class="mode-tabs flex border-b border-slate-200 mb-6">
                 <button class="mode-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" onclick="switchMode('name')">
                     이름으로 찾기
@@ -71,7 +70,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 </p>
             </div>
 
-            <!-- 2. 지역 검색 (상세 지역 선택) -->
+            <!-- 2. 지역 검색 -->
             <div id="search-region" class="search-container hidden mb-6">
                 <div id="region-main-scroll" class="flex flex-wrap gap-2 justify-center mb-4"></div>
                 <div id="sub-region-area" class="hidden bg-slate-100 p-4 rounded-xl text-center">
@@ -88,7 +87,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 </button>
             </div>
 
-            <!-- 필터 탭 (종류별/지자체별) -->
+            <!-- 필터 탭 -->
             <div class="flex border-b border-slate-200 mb-6">
                 <button class="filter-tab active flex-1 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-colors" data-mode="category">
                     📏 거리순 ({allSpots.length})
@@ -98,7 +97,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                 </button>
             </div>
 
-            <!-- 하위 필터 (알약 디자인) -->
+            <!-- 하위 필터 -->
             <div id="sub-filter-container" class="mb-8 flex flex-wrap gap-2 justify-center"></div>
 
             <!-- 리스트 영역 -->
@@ -132,7 +131,7 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
                             </div>
                         </div>
 
-                        <!-- 상세 내용 (아코디언) -->
+                        <!-- 상세 내용 -->
                         <div class="detail-area hidden bg-slate-50 border-x border-b border-slate-200 rounded-b-xl p-5 animate-fade-in">
                              
                             <p class="text-sm text-slate-500 mb-5 flex items-start gap-1 pb-4 border-b border-slate-200">
@@ -249,7 +248,6 @@ const renderedSpots = await Promise.all(allSpots.map(async (spot) => {
             .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
         </style>
 
-        <!-- 데이터 전달 -->
         <script define:vars={{ categoryCounts, regionCounts, allSpotsLength: allSpots.length, myEmail: "naturekr@gmail.com" }}>
             window.categoryCounts = categoryCounts;
             window.regionCounts = regionCounts;
