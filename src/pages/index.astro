@@ -1,12 +1,11 @@
 ---
 // ------------------------------------------------------------------
-// [1. 서버 사이드 로직] (빠져있던 부분)
-// 마크다운 데이터를 불러오고 가공하는 "두뇌" 역할을 합니다.
+// [1. 서버 사이드 로직]
 // ------------------------------------------------------------------
 import { getCollection } from 'astro:content';
 
-// Tailwind CSS 파일 연결 (Tailwind v4 사용 시 필수)
-// 만약 styles 폴더가 없다면 이 줄은 지우셔도 되지만, 디자인이 깨지면 다시 넣어야 합니다.
+// Tailwind CSS 파일 연결
+// (만약 에러가 나면 이 줄을 지우거나, src/styles/global.css 파일이 있는지 확인하세요)
 import '../styles/global.css'; 
 
 // 1. 데이터 가져오기
@@ -15,7 +14,7 @@ const rawSpots = await getCollection('spots');
 // 2. 거리순 정렬 (기본)
 const sortedSpots = rawSpots.sort((a, b) => a.data.distance - b.data.distance);
 
-// 3. 마크다운 본문 변환 (<spot.Content /> 사용을 위해 필요)
+// 3. 마크다운 본문 변환
 const renderedSpots = await Promise.all(
   sortedSpots.map(async (spot) => {
     const { Content } = await spot.render();
@@ -26,7 +25,7 @@ const renderedSpots = await Promise.all(
   })
 );
 
-// 4. 필터 카운트 계산 (자동)
+// 4. 필터 카운트 계산
 const categoryCounts: Record<string, number> = {};
 const regionCounts: Record<string, number> = {};
 
@@ -36,13 +35,11 @@ renderedSpots.forEach((spot) => {
   if (region) regionCounts[region] = (regionCounts[region] || 0) + 1;
 });
 
-// 전체 개수 변수 정의
-const allSpots = renderedSpots;
-const allSpotsLength = allSpots.length;
+const allSpotsLength = renderedSpots.length;
 ---
 
 <!-- ------------------------------------------------------------------ -->
-<!-- [2. 클라이언트 사이드 UI] (보내주신 코드) -->
+<!-- [2. 클라이언트 사이드 UI] -->
 <!-- ------------------------------------------------------------------ -->
 <html lang="ko">
 	<head>
@@ -208,6 +205,7 @@ const allSpotsLength = allSpots.length;
         </div>
 
         <style is:global>
+            /* 기존 스타일 */
             .main-tab.active { color: #1e293b; border-color: #1e293b; }
             
             .filter-chip { 
@@ -260,6 +258,35 @@ const allSpotsLength = allSpots.length;
 
             @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
             .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
+
+            /* 👇 [추가된 부분] 마크다운 본문 스타일 일괄 적용 👇 */
+            .prose h1 {
+                font-size: 1.5rem;   /* 글자 크기 키움 (약 24px) */
+                font-weight: 800;    /* 아주 굵게 */
+                color: #111827;      /* 진한 검정색 */
+                margin-top: 1.5rem;  /* 위쪽 여백 */
+                margin-bottom: 1rem; /* 아래쪽 여백 */
+                line-height: 1.3;    /* 줄 간격 */
+            }
+
+            .prose h2 {
+                font-size: 1.25rem;  /* h1보다는 조금 작게 */
+                font-weight: 700;    /* 굵게 */
+                color: #1f2937;      
+                margin-top: 1.2rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .prose p {
+                margin-bottom: 1rem; /* 문단 간격 벌리기 */
+                line-height: 1.7;    /* 줄 간격 시원하게 */
+            }
+            
+            .prose ul {
+                list-style-type: disc; /* 점(•) 표시 */
+                padding-left: 1.5rem;  /* 들여쓰기 */
+                margin-bottom: 1rem;
+            }
         </style>
 
         <script define:vars={{ categoryCounts, regionCounts, allSpotsLength, myEmail: "naturekr@gmail.com" }}>
@@ -421,7 +448,6 @@ const allSpotsLength = allSpots.length;
                                 mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">지도 API 로딩 실패 (localhost 등록 확인 필요)</div>';
                                 return;
                             }
-                            // 좌표가 0이거나 없을 경우 예외처리
                             if(!lat || !lng) {
                                 mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">좌표 정보가 없습니다.</div>';
                                 return;
