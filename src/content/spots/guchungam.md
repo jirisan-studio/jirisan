@@ -21,3 +21,14 @@ lng: 127.4990
 - 화엄사 주차장에 주차 후, 화엄사 경내를 구경하고 대숲길을 따라 10분 정도 걸어가면 나옵니다.
 - 암자 앞마당의 석등과 배례석도 놓치지 말고 구경해보세요.
 <br>아래에 있는 국가유산 링크를 누르면 지정된 국가유산을 확인하실 수 있습니다.
+
+<div class="w-full aspect-video rounded-xl overflow-hidden shadow-lg my-6">
+  <iframe 
+    class="w-full h-full"
+    src="https://www.youtube.com/embed/99QFgz2RmXY" 
+    title="YouTube video player" 
+    frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+</div>

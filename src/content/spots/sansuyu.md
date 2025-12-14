@@ -11,3 +11,14 @@ lng: 127.4733
 ---
 # 노란 봄의 전령사
 매년 3월이면 마을 전체가 노란 산수유 꽃으로 뒤덮입니다. 꽃이 필 시기에는 아침 일찍 이동해야 교통체증을 피할 수 있습니다. 
+
+<div class="w-full aspect-video rounded-xl overflow-hidden shadow-lg my-6">
+  <iframe 
+    class="w-full h-full"
+    src="https://www.youtube.com/embed/blUq3nmo9f4" 
+    title="YouTube video player" 
+    frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+    allowfullscreen>
+  </iframe>
+</div>
